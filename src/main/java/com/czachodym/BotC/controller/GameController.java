@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+import static org.springframework.http.HttpStatus.CREATED;
+
 @RestController
 @RequestMapping("/game")
 @Slf4j
@@ -38,7 +40,7 @@ public class GameController {
         log.info("Creating new game: {}", gameDto);
         long id = gameService.createGame(gameDto);
         log.info("Finished creating new game.");
-        return ResponseEntity.ok(Map.of("id", id));
+        return ResponseEntity.status(CREATED).body(Map.of("id", id));
     }
 
     @PostMapping

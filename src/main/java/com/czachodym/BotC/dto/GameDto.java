@@ -11,7 +11,9 @@ public record GameDto (
         long id,
         ScriptDto script,
         PlayerDto storyteller,
+        CharacterDto fabled,
         List<PlayerCharacterPairDto> assignments,
         boolean goodWon,
-        LocalDateTime date
+        LocalDateTime date,
+        String notes
 ){}

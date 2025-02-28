@@ -4,6 +4,7 @@ import com.czachodym.BotC.dao.CharacterRepository;
 import com.czachodym.BotC.dao.GameRepository;
 import com.czachodym.BotC.dao.PlayerRepository;
 import com.czachodym.BotC.dao.ScriptRepository;
+import com.czachodym.BotC.dto.CharacterDto;
 import com.czachodym.BotC.dto.GameDto;
 import com.czachodym.BotC.dto.util.PlayerCharacterPairDto;
 import com.czachodym.BotC.model.Character;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static com.czachodym.BotC.service.util.CommonMethods.findEntities;
@@ -37,8 +39,6 @@ public class GameService {
         log.info("Checking if game exists.");
         Game game = throwIfNotFoundById(id, gameRepository);
         log.info("Game found.");
-        log.info("ASSIGNMENTS: {}", game.getAssignments());
-        log.info("MAPPED: {}", dtoMapper.mapGame(game).assignments());
         return dtoMapper.mapGame(game);
     }
 
@@ -52,9 +52,7 @@ public class GameService {
     public long createGame(GameDto gameDto){
         Game game = buildGame(gameDto);
         log.info("Saving a new game.");
-        log.info("RECEIVED: {}", gameDto.assignments());
         Game savedGame = gameRepository.save(game);
-        log.info("SAVED: {}", savedGame.getAssignments());
         long id = savedGame.getId();
         log.info("Game saved. Id: {}", id);
 
@@ -105,6 +103,18 @@ public class GameService {
         log.info("Script found, looking for storyteller: {}", storytellerId);
         Player storyTeller = throwIfNotFoundById(storytellerId, playerRepository);
 
+        CharacterDto fabledDto = gameDto.fabled();
+        Character fabled = null;
+        log.info("Storyteller found, checking if fabled selected.");
+        if(fabledDto == null){
+            log.info("Game without fabled, skipping.");
+        } else {
+            long id = fabledDto.id();
+            log.info("Game with fabled, looking for id: {}", id);
+            fabled = throwIfNotFoundById(id, characterRepository);
+            log.info("Fabled found.");
+        }
+
         List<PlayerCharacterPairDto> playerCharacterPairDtos = gameDto.assignments();
         List<Long> playersIds = new ArrayList<>(playerCharacterPairDtos.size());
         List<Long> charactersIds = new ArrayList<>(playerCharacterPairDtos.size());
@@ -112,7 +122,7 @@ public class GameService {
             playersIds.add(pair.player().id());
             charactersIds.add(pair.character().id());
         });
-        log.info("Storyteller found, looking for assignments: {}", playersIds);
+        log.info("Looking for players: {}", playersIds);
         List<Player> players = findEntities(playersIds, playerRepository);
         log.info("Players found, looking for characters: {}", charactersIds);
         List<Character> characters = findEntities(charactersIds, characterRepository);
@@ -121,6 +131,7 @@ public class GameService {
         playerCharacterPairDtos.forEach(pair -> {
             long playerId = pair.player().id();
             long characterId = pair.character().id();
+            boolean good = pair.good();
             Player player = players.stream()
                     .filter(p -> playerId == p.getId()).findFirst().orElseThrow();
             Character character = characters.stream()
@@ -128,17 +139,21 @@ public class GameService {
             PlayerCharacterPair playerCharacterPair = PlayerCharacterPair.builder()
                     .player(player)
                     .character(character)
+                    .good(good)
                     .build();
             assignments.add(playerCharacterPair);
         });
+        assignments.sort(Comparator.comparingInt(a -> a.getCharacter().getAlignment().ordinal()));
         log.info("Validation successful, building a game.");
 
-        return Game.builder()
-                .storyteller(storyTeller)
+        return builder
                 .script(script)
+                .storyteller(storyTeller)
+                .fabled(fabled)
                 .assignments(assignments)
                 .goodWon(gameDto.goodWon())
                 .date(gameDto.date())
+                .notes(gameDto.notes())
                 .build();
     }
 }

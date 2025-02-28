@@ -13,3 +13,5 @@ spring:
     console:
       enabled: true
       path: /guest/h2-console
+
+frontend-url: http://localhost:4200

@@ -11,6 +11,5 @@ public record ScriptDto(
     @Nonnull
     String name,
     @Nonnull
-    List<CharacterDto> characters,
-    int timesPlayed
+    List<CharacterDto> characters
 ){}

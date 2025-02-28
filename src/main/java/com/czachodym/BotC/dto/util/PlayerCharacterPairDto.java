@@ -8,5 +8,6 @@ import lombok.Builder;
 @Builder
 public record PlayerCharacterPairDto(
         PlayerDto player,
-        CharacterDto character
+        CharacterDto character,
+        boolean good
 ){}

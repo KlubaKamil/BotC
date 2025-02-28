@@ -13,12 +13,5 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @RequiredArgsConstructor
-@AllArgsConstructor
 public class Player extends BotCEntity implements Serializable {
-    @Column
-    private int gamesNumber;
-    @Column
-    private float winRatio;
-    @Column
-    private float goodPercentage;
 }

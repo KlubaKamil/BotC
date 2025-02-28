@@ -10,17 +10,18 @@ import com.czachodym.BotC.model.Player;
 import com.czachodym.BotC.model.Script;
 import com.czachodym.BotC.model.Character;
 import com.czachodym.BotC.model.util.PlayerCharacterPair;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
+@Slf4j
 public class DtoMapper {
     public ScriptDto mapScript(Script script){
         return ScriptDto.builder()
                 .id(script.getId())
                 .name(script.getName())
-                .timesPlayed(script.getTimesPlayed())
                 .characters(mapCharacterList(script.getCharacters()))
                 .build();
     }
@@ -32,11 +33,11 @@ public class DtoMapper {
     }
 
     public CharacterDto mapCharacter(Character character){
-        return CharacterDto.builder()
+        return character == null ? null :
+                CharacterDto.builder()
                 .id(character.getId())
                 .name(character.getName())
                 .alignment(character.getAlignment())
-                .good(character.isGood())
                 .description(character.getDescription())
                 .linkToWiki(character.getLinkToWiki())
                 .build();
@@ -48,15 +49,16 @@ public class DtoMapper {
                 .toList();
     }
 
-
     public GameDto mapGame(Game game){
         return GameDto.builder()
                 .id(game.getId())
                 .script(mapScript(game.getScript()))
                 .storyteller(mapPlayer(game.getStoryteller()))
+                .fabled(mapCharacter(game.getFabled()))
                 .assignments(mapPlayerCharacterPairList(game.getAssignments()))
                 .goodWon(game.isGoodWon())
                 .date(game.getDate())
+                .notes(game.getNotes())
                 .build();
     }
 
@@ -70,9 +72,6 @@ public class DtoMapper {
         return PlayerDto.builder()
                 .id(player.getId())
                 .name(player.getName())
-                .gamesNumber(player.getGamesNumber())
-                .winRatio(player.getWinRatio())
-                .goodPercentage(player.getGoodPercentage())
                 .build();
     }
 
@@ -86,6 +85,7 @@ public class DtoMapper {
         return PlayerCharacterPairDto.builder()
                 .character(mapCharacter(playerCharacterPair.getCharacter()))
                 .player(mapPlayer(playerCharacterPair.getPlayer()))
+                .good(playerCharacterPair.isGood())
                 .build();
     }
 

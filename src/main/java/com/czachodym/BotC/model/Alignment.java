@@ -6,5 +6,5 @@ public enum Alignment {
     Minion,
     Demon,
     Traveller,
-    Fable
+    Fabled
 }

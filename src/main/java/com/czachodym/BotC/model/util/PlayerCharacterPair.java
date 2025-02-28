@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PlayerCharacterPair {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     @ManyToOne
     @JoinColumn(name = "character_id")
@@ -23,4 +23,5 @@ public class PlayerCharacterPair {
     @ManyToOne
     @JoinColumn(name = "player_id")
     private Player player;
+    private boolean good;
 }

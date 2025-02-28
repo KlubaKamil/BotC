@@ -29,7 +29,7 @@ public class PlayerService {
     }
 
     public List<PlayerDto> getAllPlayers(){
-        log.info("Getting all assignments");
+        log.info("Getting all players");
         List<Player> players = playerRepository.findAll();
         log.info("Players found.");
         return dtoMapper.mapPlayerList(players);

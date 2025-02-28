@@ -1,6 +1,5 @@
 package com.czachodym.BotC.controller;
 
-import com.czachodym.BotC.dto.GameDto;
 import com.czachodym.BotC.dto.ScriptDto;
 import com.czachodym.BotC.service.ScriptService;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+
+import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 @RequestMapping("/script")
@@ -39,7 +40,7 @@ public class ScriptController {
         log.info("Creating new script: {}", scriptDto);
         long id = scriptService.createScript(scriptDto);
         log.info("Finished creating new script.");
-        return ResponseEntity.ok(Map.of("id", id));
+        return ResponseEntity.status(CREATED).body(Map.of("id", id));
     }
 
     @PostMapping
@@ -50,7 +51,7 @@ public class ScriptController {
         return ResponseEntity.ok(Map.of("id", id));
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Boolean>> deleteScript(@PathVariable("id") long id){
         log.info("Deleting a script: {}", id);
         boolean deleted = scriptService.deleteScript(id);

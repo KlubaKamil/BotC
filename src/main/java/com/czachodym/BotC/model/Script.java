@@ -21,6 +21,4 @@ import java.util.List;
 public class Script extends BotCEntity implements Serializable {
     @ManyToAny
     private List<Character> characters;
-    @Column
-    private int timesPlayed;
 }

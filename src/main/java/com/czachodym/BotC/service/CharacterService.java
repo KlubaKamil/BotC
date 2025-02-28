@@ -87,7 +87,6 @@ public class CharacterService {
         return builder
                 .name(characterDto.name())
                 .alignment(characterDto.alignment())
-                .good(characterDto.good())
                 .description(characterDto.description())
                 .linkToWiki(characterDto.linkToWiki())
                 .build();

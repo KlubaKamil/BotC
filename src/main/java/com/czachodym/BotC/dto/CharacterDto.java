@@ -1,18 +1,18 @@
 package com.czachodym.BotC.dto;
 
 import com.czachodym.BotC.model.Alignment;
-import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 @Builder
 public record CharacterDto(
         Long id,
-        @Nonnull
+        @NotBlank
         String name,
-        @Nonnull
+        @NotNull
         Alignment alignment,
-        boolean good,
-        @Nonnull
+        @NotBlank
         String description,
         String linkToWiki
 ){}

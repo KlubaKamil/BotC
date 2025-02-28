@@ -2,6 +2,7 @@ package com.czachodym.BotC.controller;
 
 import com.czachodym.BotC.dto.PlayerDto;
 import com.czachodym.BotC.service.PlayerService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+
+import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 @RequestMapping("/player")
@@ -28,29 +31,29 @@ public class PlayerController {
 
     @GetMapping("/all")
     public ResponseEntity<List<PlayerDto>> getAllPlayers(){
-        log.info("Getting all assignments.");
+        log.info("Getting all players.");
         List<PlayerDto> playerDtos = playerService.getAllPlayers();
-        log.info("Finished getting all assignments");
+        log.info("Finished getting all players");
         return ResponseEntity.ok(playerDtos);
     }
 
     @PutMapping
-    public ResponseEntity<Map<String, Long>> createPlayer(@RequestBody PlayerDto playerDto){
+    public ResponseEntity<Map<String, Long>> createPlayer(@Valid @RequestBody PlayerDto playerDto){
         log.info("Creating new player: {}", playerDto);
         long id = playerService.createPlayer(playerDto);
         log.info("Finished creating new player.");
-        return ResponseEntity.ok(Map.of("id", id));
+        return ResponseEntity.status(CREATED).body(Map.of("id", id));
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, Long>> renamePlayer(@RequestBody PlayerDto playerRenameDto){
+    public ResponseEntity<Map<String, Long>> editPlayer(@Valid @RequestBody PlayerDto playerRenameDto){
         log.info("Renaming a player: {}", playerRenameDto);
         long id = playerService.editPlayer(playerRenameDto);
         log.info("Finished renaming a player.");
         return ResponseEntity.ok(Map.of("id", id));
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Boolean>> deletePlayer(@PathVariable("id") long id){
         log.info("Deleting a player: {}", id);
         boolean deleted = playerService.deletePlayer(id);

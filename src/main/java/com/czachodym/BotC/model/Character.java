@@ -11,6 +11,7 @@ import lombok.experimental.SuperBuilder;
 import java.io.Serializable;
 
 @Entity
+@Table(name = "`character`")
 @Data
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
@@ -20,8 +21,6 @@ public class Character extends BotCEntity implements Serializable {
     @Column
     @Enumerated(EnumType.STRING)
     private Alignment alignment;
-    @Column
-    private boolean good;
     @Column
     private String description;
     @Column

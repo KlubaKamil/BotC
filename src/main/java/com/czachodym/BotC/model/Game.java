@@ -24,11 +24,16 @@ public class Game implements Serializable {
     @ManyToOne
     @JoinColumn(name = "storyteller_id")
     private Player storyteller;
-    @OneToMany(cascade = CascadeType.PERSIST)
+    @ManyToOne
+    @JoinColumn(name = "fabled_id")
+    private Character fabled;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "game_id")
     private List<PlayerCharacterPair> assignments;
     @Column
     private boolean goodWon;
     @Column
     private LocalDateTime date;
+    @Column
+    private String notes;
 }

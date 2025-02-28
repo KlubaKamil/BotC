@@ -1,7 +1,7 @@
 package com.czachodym.BotC.service.util;
 
 import com.czachodym.BotC.dao.util.NameJpaRepository;
-import com.czachodym.BotC.exception.EntityAlreadyExists;
+import com.czachodym.BotC.exception.EntityAlreadyExistsException;
 import com.czachodym.BotC.exception.EntityNotFoundException;
 import com.czachodym.BotC.model.util.BotCEntity;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class CommonMethods {
     public static <T> void throwIfExistsByName(String name, NameJpaRepository<T, Long> repository){
         boolean exists = repository.existsByName(name);
         if(exists){
-            throw new EntityAlreadyExists(name);
+            throw new EntityAlreadyExistsException(name);
         }
     }
 
