@@ -220,9 +220,9 @@ INSERT INTO Character (id, name, alignment, description, link_to_wiki) VALUES
 (163, 'Spirit of Ivory', 'Fabled', 'There can''t be more than 1 extra evil player.', 'https://wiki.bloodontheclocktower.com/Spirit_of_Ivory'),
 (164, 'Djinn', 'Fabled', 'Use the Djinn''s special rule. All players know what it is.', 'https://wiki.bloodontheclocktower.com/Djinn'),
 (165, 'Bootlegger', 'Fabled', 'This script has homebrew characters or rules.', 'https://wiki.bloodontheclocktower.com/Bootlegger'),
-(167, 'Ferryman', 'Fabled', 'On the final day, all dead players regain their vote token.', 'https://wiki.bloodontheclocktower.com/Ferryman'),
-(168, 'Gardener', 'Fabled', 'The Storyteller assigns 1 or more players'' characters.', 'https://wiki.bloodontheclocktower.com/Gardener'),
-(169, 'Storm Catcher', 'Fabled', 'Name a good character. If in play, they can only die by execution, but evil players learn which player it is.', 'https://wiki.bloodontheclocktower.com/Storm_Catcher');
+(166, 'Ferryman', 'Fabled', 'On the final day, all dead players regain their vote token.', 'https://wiki.bloodontheclocktower.com/Ferryman'),
+(167, 'Gardener', 'Fabled', 'The Storyteller assigns 1 or more players'' characters.', 'https://wiki.bloodontheclocktower.com/Gardener'),
+(168, 'Storm Catcher', 'Fabled', 'Name a good character. If in play, they can only die by execution, but evil players learn which player it is.', 'https://wiki.bloodontheclocktower.com/Storm_Catcher');
 
 INSERT INTO Player (id, name) values
 (1, 'Kamil'),
