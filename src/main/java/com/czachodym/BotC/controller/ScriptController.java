@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/script")
@@ -52,10 +53,10 @@ public class ScriptController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Boolean>> deleteScript(@PathVariable("id") long id){
+    @ResponseStatus(NO_CONTENT)
+    public void deleteScript(@PathVariable("id") long id){
         log.info("Deleting a script: {}", id);
-        boolean deleted = scriptService.deleteScript(id);
+        scriptService.deleteScript(id);
         log.info("Finished deleting a script");
-        return ResponseEntity.ok(Map.of("deleted", deleted));
     }
 }

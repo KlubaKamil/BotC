@@ -73,14 +73,12 @@ public class GameService {
     }
 
     @Transactional
-    public boolean deleteGame(long id){
+    public void deleteGame(long id){
         log.info("Deleting a game: {}", id);
         boolean exists = gameRepository.existsById(id);
         gameRepository.deleteById(id);
         boolean deleted = exists & !gameRepository.existsById(id);
         log.info("Deleted: {}", deleted);
-
-        return deleted;
     }
 
     private Game buildGame(GameDto gameDto){

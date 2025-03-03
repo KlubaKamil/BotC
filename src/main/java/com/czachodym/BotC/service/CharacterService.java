@@ -53,7 +53,9 @@ public class CharacterService {
         String name = characterDto.name();
         log.info("Checking if character exists.");
         Character character = throwIfNotFoundById(id, characterRepository);
-        throwIfExistsByName(name, characterRepository);
+        if(!character.getName().equals(characterDto.name())) {
+            throwIfExistsByName(name, characterRepository);
+        }
         log.info("Character found, updating.");
         Character updatedCharacter = buildCharacter(characterDto, character);
         characterRepository.save(updatedCharacter);
@@ -63,14 +65,12 @@ public class CharacterService {
     }
 
     @Transactional
-    public boolean deleteCharacter(long id){
+    public void deleteCharacter(long id){
         log.info("Deleting a character.");
         boolean exists = characterRepository.existsById(id);
         characterRepository.deleteById(id);
         boolean deleted = exists & !characterRepository.existsById(id);
         log.info("Deleted: {}", deleted);
-
-        return deleted;
     }
 
     private Character buildCharacter(CharacterDto characterDto){

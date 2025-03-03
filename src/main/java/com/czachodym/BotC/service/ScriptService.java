@@ -56,7 +56,9 @@ public class ScriptService {
         String name = scriptDto.name();
         log.info("Checking if script exists.");
         Script script = throwIfNotFoundById(id, scriptRepository);
-        throwIfExistsByName(name, scriptRepository);
+        if(!script.getName().equals(scriptDto.name())) {
+            throwIfExistsByName(name, scriptRepository);
+        }
         log.info("Script found, updating.");
         Script updatedScript = buildScript(scriptDto, script);
         scriptRepository.save(updatedScript);
@@ -66,14 +68,12 @@ public class ScriptService {
     }
 
     @Transactional
-    public boolean deleteScript(long id){
+    public void deleteScript(long id){
         log.info("Deleting a script: {}", id);
         boolean exists = scriptRepository.existsById(id);
         scriptRepository.deleteById(id);
         boolean deleted = exists & !scriptRepository.existsById(id);
         log.info("Deleted: {}", deleted);
-
-        return deleted;
     }
 
     private Script buildScript(ScriptDto scriptDto){

@@ -11,7 +11,7 @@ import lombok.experimental.SuperBuilder;
 @MappedSuperclass
 public abstract class BotCEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @Column
     private String name;

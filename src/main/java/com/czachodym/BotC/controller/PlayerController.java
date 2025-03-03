@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/player")
@@ -54,10 +55,10 @@ public class PlayerController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Boolean>> deletePlayer(@PathVariable("id") long id){
+    @ResponseStatus(NO_CONTENT)
+    public void deletePlayer(@PathVariable("id") long id){
         log.info("Deleting a player: {}", id);
-        boolean deleted = playerService.deletePlayer(id);
+        playerService.deletePlayer(id);
         log.info("Finished deleting a player.");
-        return ResponseEntity.ok(Map.of("deleted", deleted));
     }
 }

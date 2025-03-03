@@ -9,5 +9,8 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+    properties:
+      hibernate:
+        show_sql: false
 
 frontend-url: ${FRONTEND_URL}

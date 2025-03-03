@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/character")
@@ -53,10 +54,10 @@ public class CharacterController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Boolean>> deleteCharacter(@PathVariable("id") long id){
+    @ResponseStatus(NO_CONTENT)
+    public void deleteCharacter(@PathVariable("id") long id){
         log.info("Deleting a character: {}", id);
-        boolean deleted = characterService.deleteCharacter(id);
+        characterService.deleteCharacter(id);
         log.info("Finished deleting a character");
-        return ResponseEntity.ok(Map.of("deleted", deleted));
     }
 }

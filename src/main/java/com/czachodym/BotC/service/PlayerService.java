@@ -53,7 +53,9 @@ public class PlayerService {
         String name = playerDto.name();
         log.info("Checking if player exists.");
         Player player = throwIfNotFoundById(id, playerRepository);
-        throwIfExistsByName(name, playerRepository);
+        if(!player.getName().equals(playerDto.name())) {
+            throwIfExistsByName(name, playerRepository);
+        }
         log.info("Player found, updating.");
         Player savedPlayer = buildPlayer(playerDto, player);
         playerRepository.save(savedPlayer);
@@ -63,14 +65,12 @@ public class PlayerService {
     }
 
     @Transactional
-    public boolean deletePlayer(long id){
+    public void deletePlayer(long id){
         log.info("Deleting a player.");
         boolean exists = playerRepository.existsById(id);
         playerRepository.deleteById(id);
         boolean deleted = exists & !playerRepository.existsById(id);
         log.info("Deleted: {}", deleted);
-
-        return deleted;
     }
 
     private Player buildPlayer(PlayerDto playerDto){

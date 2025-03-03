@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 public class Game implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @ManyToOne
     @JoinColumn(name = "script_id")

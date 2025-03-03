@@ -10,9 +10,9 @@
 	</parent>
 	<groupId>com.czachodym</groupId>
 	<artifactId>BotC</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>BotC</name>
-	<description>Blood on the Clocktower results app</description>
+	<description>Blood on the Clocktower archive app</description>
 	<url/>
 	<licenses>
 		<license/>

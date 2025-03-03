@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/game")
@@ -52,10 +53,10 @@ public class GameController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Boolean>> deleteGame(@PathVariable("id") long id){
+    @ResponseStatus(NO_CONTENT)
+    public void deleteGame(@PathVariable("id") long id){
         log.info("Deleting a game: {}", id);
-        boolean deleted = gameService.deleteGame(id);
+        gameService.deleteGame(id);
         log.info("Finished deleting a game");
-        return ResponseEntity.ok(Map.of("deleted", deleted));
     }
 }
