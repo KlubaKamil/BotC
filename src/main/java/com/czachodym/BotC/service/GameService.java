@@ -1,17 +1,15 @@
 package com.czachodym.BotC.service;
 
-import com.czachodym.BotC.dao.CharacterRepository;
-import com.czachodym.BotC.dao.GameRepository;
-import com.czachodym.BotC.dao.PlayerRepository;
-import com.czachodym.BotC.dao.ScriptRepository;
+import com.czachodym.BotC.dao.*;
 import com.czachodym.BotC.dto.CharacterDto;
 import com.czachodym.BotC.dto.GameDto;
-import com.czachodym.BotC.dto.util.PlayerCharacterPairDto;
+import com.czachodym.BotC.dto.PlaceDto;
+import com.czachodym.BotC.dto.util.AssignmentDto;
+import com.czachodym.BotC.dto.util.TransformationDto;
+import com.czachodym.BotC.model.*;
 import com.czachodym.BotC.model.Character;
-import com.czachodym.BotC.model.Game;
-import com.czachodym.BotC.model.Player;
-import com.czachodym.BotC.model.Script;
-import com.czachodym.BotC.model.util.PlayerCharacterPair;
+import com.czachodym.BotC.model.util.Assignment;
+import com.czachodym.BotC.model.util.Transformation;
 import com.czachodym.BotC.service.util.DtoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.czachodym.BotC.service.util.CommonMethods.findEntities;
+import static com.czachodym.BotC.service.util.CommonMethods.findEntitiesById;
 import static com.czachodym.BotC.service.util.CommonMethods.throwIfNotFoundById;
 
 @Service
@@ -33,6 +31,7 @@ public class GameService {
     private final ScriptRepository scriptRepository;
     private final PlayerRepository playerRepository;
     private final CharacterRepository characterRepository;
+    private final PlaceRepository placeRepository;
     private final DtoMapper dtoMapper;
 
     public GameDto getGame(long id){
@@ -112,36 +111,18 @@ public class GameService {
             fabled = throwIfNotFoundById(id, characterRepository);
             log.info("Fabled found.");
         }
-
-        List<PlayerCharacterPairDto> playerCharacterPairDtos = gameDto.assignments();
-        List<Long> playersIds = new ArrayList<>(playerCharacterPairDtos.size());
-        List<Long> charactersIds = new ArrayList<>(playerCharacterPairDtos.size());
-        playerCharacterPairDtos.forEach(pair -> {
-            playersIds.add(pair.player().id());
-            charactersIds.add(pair.character().id());
-        });
-        log.info("Looking for players: {}", playersIds);
-        List<Player> players = findEntities(playersIds, playerRepository);
-        log.info("Players found, looking for characters: {}", charactersIds);
-        List<Character> characters = findEntities(charactersIds, characterRepository);
-
-        List<PlayerCharacterPair> assignments = new ArrayList<>(playerCharacterPairDtos.size());
-        playerCharacterPairDtos.forEach(pair -> {
-            long playerId = pair.player().id();
-            long characterId = pair.character().id();
-            boolean good = pair.good();
-            Player player = players.stream()
-                    .filter(p -> playerId == p.getId()).findFirst().orElseThrow();
-            Character character = characters.stream()
-                    .filter(c -> characterId == c.getId()).findFirst().orElseThrow();
-            PlayerCharacterPair playerCharacterPair = PlayerCharacterPair.builder()
-                    .player(player)
-                    .character(character)
-                    .good(good)
-                    .build();
-            assignments.add(playerCharacterPair);
-        });
-        assignments.sort(Comparator.comparingInt(a -> a.getCharacter().getAlignment().ordinal()));
+        List<Assignment> assignments = buildAssignments(gameDto.assignments());
+        PlaceDto placeDto = gameDto.place();
+        Place place = null;
+        log.info("Characters found, checking if place selected.");
+        if(placeDto == null){
+            log.info("Game without place, skipping.");
+        } else {
+            long id = placeDto.id();
+            log.info("Game with place, looking for id: {}", id);
+            place = throwIfNotFoundById(id, placeRepository);
+            log.info("Place found.");
+        }
         log.info("Validation successful, building a game.");
 
         return builder
@@ -152,6 +133,56 @@ public class GameService {
                 .goodWon(gameDto.goodWon())
                 .date(gameDto.date())
                 .notes(gameDto.notes())
+                .place(place)
                 .build();
+    }
+
+    private List<Assignment> buildAssignments(List<AssignmentDto> assignmentDtos){
+        List<Long> playersIds = new ArrayList<>(assignmentDtos.size());
+        List<Long> charactersIds = new ArrayList<>(assignmentDtos.size());
+        assignmentDtos.forEach(a -> {
+            playersIds.add(a.player().id());
+            charactersIds.add(a.character().id());
+            charactersIds.addAll(a.transformations().stream()
+                .map(t -> t.character().id())
+                .toList());
+        });
+        log.info("Looking for players: {}", playersIds);
+        List<Player> players = findEntitiesById(playersIds, playerRepository);
+        log.info("Players found, looking for characters: {}", charactersIds);
+        List<Character> characters = findEntitiesById(charactersIds, characterRepository);
+        return assignmentDtos.stream()
+            .map(a -> {
+                long playerDtoId = a.player().id();
+                long characterDtoId = a.character().id();
+                int index = a.index();
+                boolean good = a.good();
+                List<TransformationDto> transformationDtos = a.transformations();
+                Player player = players.stream()
+                    .filter(p -> playerDtoId == p.getId()).findFirst().orElseThrow();
+                Character character = characters.stream()
+                    .filter(c -> characterDtoId == c.getId()).findFirst().orElseThrow();
+                List<Transformation> transformations = transformationDtos.stream()
+                    .map(t -> {
+                        long transformedCharacterDtoId = t.character().id();
+                        Character transformedCharacter = characters.stream()
+                            .filter(c -> transformedCharacterDtoId == c.getId()).findFirst().orElseThrow();
+                        boolean transformedGood = t.good();
+                        return Transformation.builder()
+                            .character(transformedCharacter)
+                            .good(transformedGood)
+                            .build();
+                    })
+                    .toList();
+                return Assignment.builder()
+                    .player(player)
+                    .character(character)
+                    .index(index)
+                    .good(good)
+                    .transformations(transformations)
+                    .build();
+            })
+            .sorted(Comparator.comparingInt(a -> a.getCharacter().getAlignment().ordinal()))
+            .toList();
     }
 }

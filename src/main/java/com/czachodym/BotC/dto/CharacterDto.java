@@ -10,6 +10,8 @@ public record CharacterDto(
         Long id,
         @NotBlank
         String name,
+        @NotBlank
+        int maxStartNumber,
         @NotNull
         Alignment alignment,
         @NotBlank

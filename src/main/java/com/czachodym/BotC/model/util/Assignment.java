@@ -8,12 +8,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlayerCharacterPair {
+public class Assignment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -23,5 +25,11 @@ public class PlayerCharacterPair {
     @ManyToOne
     @JoinColumn(name = "player_id")
     private Player player;
+    @Column
+    private int index;
+    @Column
     private boolean good;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "assignment_id")
+    private List<Transformation> transformations;
 }

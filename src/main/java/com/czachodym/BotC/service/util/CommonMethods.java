@@ -7,16 +7,17 @@ import com.czachodym.BotC.model.util.BotCEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.HashSet;
 import java.util.List;
 
 @Slf4j
 public class CommonMethods {
-    public static <T extends BotCEntity> List<T> findEntities(List<Long> ids, NameJpaRepository<T, Long> repository){
+    public static <T extends BotCEntity> List<T> findEntitiesById(List<Long> ids, NameJpaRepository<T, Long> repository){
         List<T> entities = repository.findAllById(ids);
-        if(entities.size() != ids.size()) {
-            List<Long> actualIds = entities.stream()
-                    .map(T::getId)
-                    .toList();
+        List<Long> actualIds = entities.stream()
+                .map(T::getId)
+                .toList();
+        if(!new HashSet<>(actualIds).containsAll(ids)) {
             throw new EntityNotFoundException(ids, actualIds);
         }
         return entities;

@@ -1,11 +1,12 @@
 package com.czachodym.BotC.model;
 
-import com.czachodym.BotC.model.util.PlayerCharacterPair;
+import com.czachodym.BotC.model.util.Assignment;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -29,11 +30,15 @@ public class Game implements Serializable {
     private Character fabled;
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "game_id")
-    private List<PlayerCharacterPair> assignments;
+    private List<Assignment> assignments;
     @Column
     private boolean goodWon;
     @Column
-    private LocalDateTime date;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+    private LocalDate date;
     @Column
     private String notes;
+    @ManyToOne
+    @JoinColumn(name = "place_id")
+    Place place;
 }

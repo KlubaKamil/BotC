@@ -1,9 +1,10 @@
 package com.czachodym.BotC.dto;
 
-import com.czachodym.BotC.dto.util.PlayerCharacterPairDto;
+import com.czachodym.BotC.dto.util.AssignmentDto;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Builder
@@ -12,8 +13,10 @@ public record GameDto (
         ScriptDto script,
         PlayerDto storyteller,
         CharacterDto fabled,
-        List<PlayerCharacterPairDto> assignments,
+        List<AssignmentDto> assignments,
         boolean goodWon,
-        LocalDateTime date,
-        String notes
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+        LocalDate date,
+        String notes,
+        PlaceDto place
 ){}

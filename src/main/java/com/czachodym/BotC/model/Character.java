@@ -19,6 +19,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class Character extends BotCEntity implements Serializable {
     @Column
+    private int maxStartNumber;
+    @Column
     @Enumerated(EnumType.STRING)
     private Alignment alignment;
     @Column

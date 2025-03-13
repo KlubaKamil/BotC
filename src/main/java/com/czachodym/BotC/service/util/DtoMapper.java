@@ -1,15 +1,12 @@
 package com.czachodym.BotC.service.util;
 
-import com.czachodym.BotC.dto.CharacterDto;
-import com.czachodym.BotC.dto.GameDto;
-import com.czachodym.BotC.dto.PlayerDto;
-import com.czachodym.BotC.dto.ScriptDto;
-import com.czachodym.BotC.dto.util.PlayerCharacterPairDto;
-import com.czachodym.BotC.model.Game;
-import com.czachodym.BotC.model.Player;
-import com.czachodym.BotC.model.Script;
+import com.czachodym.BotC.dto.*;
+import com.czachodym.BotC.dto.util.AssignmentDto;
+import com.czachodym.BotC.dto.util.TransformationDto;
+import com.czachodym.BotC.model.*;
 import com.czachodym.BotC.model.Character;
-import com.czachodym.BotC.model.util.PlayerCharacterPair;
+import com.czachodym.BotC.model.util.Assignment;
+import com.czachodym.BotC.model.util.Transformation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +34,7 @@ public class DtoMapper {
                 CharacterDto.builder()
                 .id(character.getId())
                 .name(character.getName())
+                .maxStartNumber(character.getMaxStartNumber())
                 .alignment(character.getAlignment())
                 .description(character.getDescription())
                 .linkToWiki(character.getLinkToWiki())
@@ -55,10 +53,11 @@ public class DtoMapper {
                 .script(mapScript(game.getScript()))
                 .storyteller(mapPlayer(game.getStoryteller()))
                 .fabled(mapCharacter(game.getFabled()))
-                .assignments(mapPlayerCharacterPairList(game.getAssignments()))
+                .assignments(mapAssignments(game.getAssignments()))
                 .goodWon(game.isGoodWon())
                 .date(game.getDate())
                 .notes(game.getNotes())
+                .place(mapPlace(game.getPlace()))
                 .build();
     }
 
@@ -81,17 +80,45 @@ public class DtoMapper {
                 .toList();
     }
 
-    public PlayerCharacterPairDto mapPlayerCharacterPair(PlayerCharacterPair playerCharacterPair){
-        return PlayerCharacterPairDto.builder()
-                .character(mapCharacter(playerCharacterPair.getCharacter()))
-                .player(mapPlayer(playerCharacterPair.getPlayer()))
-                .good(playerCharacterPair.isGood())
+    public AssignmentDto mapAssignment(Assignment assignment){
+        return AssignmentDto.builder()
+                .character(mapCharacter(assignment.getCharacter()))
+                .player(mapPlayer(assignment.getPlayer()))
+                .index(assignment.getIndex())
+                .good(assignment.isGood())
+                .transformations(mapTransformations(assignment.getTransformations()))
                 .build();
     }
 
-    public List<PlayerCharacterPairDto> mapPlayerCharacterPairList(List<PlayerCharacterPair> playerCharacterPairs){
-        return playerCharacterPairs.stream()
-                .map(this::mapPlayerCharacterPair)
+    public List<AssignmentDto> mapAssignments(List<Assignment> assignments){
+        return assignments.stream()
+                .map(this::mapAssignment)
+                .toList();
+    }
+
+    public TransformationDto mapTransformation(Transformation transformation){
+        return TransformationDto.builder()
+                .character(mapCharacter(transformation.getCharacter()))
+                .good(transformation.isGood())
+                .build();
+    }
+
+    public List<TransformationDto> mapTransformations(List<Transformation> transformations){
+        return transformations.stream()
+                .map(this::mapTransformation)
+                .toList();
+    }
+
+    public PlaceDto mapPlace(Place place){
+        return place == null ? null :
+                PlaceDto.builder()
+                .id(place.getId())
+                .name(place.getName())
+                .build();
+    }
+    public List<PlaceDto> mapPlaceList(List<Place> places){
+        return places.stream()
+                .map(this::mapPlace)
                 .toList();
     }
 }

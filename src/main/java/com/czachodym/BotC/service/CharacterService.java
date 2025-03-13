@@ -86,6 +86,7 @@ public class CharacterService {
     private Character buildCharacter(CharacterDto characterDto, Character.CharacterBuilder<?,?> builder){
         return builder
                 .name(characterDto.name())
+                .maxStartNumber(characterDto.maxStartNumber())
                 .alignment(characterDto.alignment())
                 .description(characterDto.description())
                 .linkToWiki(characterDto.linkToWiki())

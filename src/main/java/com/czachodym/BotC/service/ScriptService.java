@@ -92,7 +92,7 @@ public class ScriptService {
                 .map(CharacterDto::id)
                 .toList();
         log.info("Script not found, looking for scriptAssignments: {}", characterIds);
-        List<Character> characters = findEntities(characterIds, characterRepository);
+        List<Character> characters = findEntitiesById(characterIds, characterRepository);
         log.info("Characters found, validation successful. Building a script.");
 
         return builder
