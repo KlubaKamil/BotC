@@ -84,7 +84,7 @@ public class DtoMapper {
         return AssignmentDto.builder()
                 .character(mapCharacter(assignment.getCharacter()))
                 .player(mapPlayer(assignment.getPlayer()))
-                .index(assignment.getIndex())
+                .index(assignment.getAssignmentIndex())
                 .good(assignment.isGood())
                 .transformations(mapTransformations(assignment.getTransformations()))
                 .build();

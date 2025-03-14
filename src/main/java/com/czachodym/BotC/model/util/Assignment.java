@@ -26,7 +26,7 @@ public class Assignment {
     @JoinColumn(name = "player_id")
     private Player player;
     @Column
-    private int index;
+    private int assignmentIndex;
     @Column
     private boolean good;
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)

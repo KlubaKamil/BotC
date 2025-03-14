@@ -1,17 +1,20 @@
 package com.czachodym.BotC.service;
 
 import com.czachodym.BotC.dao.CharacterRepository;
+import com.czachodym.BotC.dao.GameRepository;
 import com.czachodym.BotC.dao.ScriptRepository;
 import com.czachodym.BotC.dto.CharacterDto;
 import com.czachodym.BotC.dto.ScriptDto;
 import com.czachodym.BotC.model.Character;
 import com.czachodym.BotC.model.Script;
+import com.czachodym.BotC.model.util.BotCEntity;
 import com.czachodym.BotC.service.util.DtoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 
 import static com.czachodym.BotC.service.util.CommonMethods.*;
@@ -56,6 +59,9 @@ public class ScriptService {
         String name = scriptDto.name();
         log.info("Checking if script exists.");
         Script script = throwIfNotFoundById(id, scriptRepository);
+        List<Long> characterIdsOrder = script.getCharacters().stream()
+                .map(BotCEntity::getId)
+                .toList();
         if(!script.getName().equals(scriptDto.name())) {
             throwIfExistsByName(name, scriptRepository);
         }
@@ -92,7 +98,9 @@ public class ScriptService {
                 .map(CharacterDto::id)
                 .toList();
         log.info("Script not found, looking for scriptAssignments: {}", characterIds);
-        List<Character> characters = findEntitiesById(characterIds, characterRepository);
+        List<Character> characters = findEntitiesById(characterIds, characterRepository)
+                .stream().sorted(Comparator.comparingLong(c -> characterIds.indexOf(c.getId())))
+                .toList();
         log.info("Characters found, validation successful. Building a script.");
 
         return builder

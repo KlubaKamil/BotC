@@ -177,7 +177,7 @@ public class GameService {
                 return Assignment.builder()
                     .player(player)
                     .character(character)
-                    .index(index)
+                    .assignmentIndex(index)
                     .good(good)
                     .transformations(transformations)
                     .build();
