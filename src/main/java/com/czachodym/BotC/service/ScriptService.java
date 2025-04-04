@@ -1,13 +1,14 @@
 package com.czachodym.BotC.service;
 
 import com.czachodym.BotC.dao.CharacterRepository;
-import com.czachodym.BotC.dao.GameRepository;
 import com.czachodym.BotC.dao.ScriptRepository;
 import com.czachodym.BotC.dto.CharacterDto;
 import com.czachodym.BotC.dto.ScriptDto;
+import com.czachodym.BotC.dto.details.script.ScriptCharacterDetails;
+import com.czachodym.BotC.dto.details.script.ScriptDetails;
+import com.czachodym.BotC.dto.headers.ScriptHeader;
 import com.czachodym.BotC.model.Character;
 import com.czachodym.BotC.model.Script;
-import com.czachodym.BotC.model.util.BotCEntity;
 import com.czachodym.BotC.service.util.DtoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +31,14 @@ public class ScriptService {
     public ScriptDto getScript(long id){
         log.info("Checking if script exists.");
         Script script = throwIfNotFoundById(id, scriptRepository);
-        log.info("Script found.");
-        return dtoMapper.mapScript(script);
+        log.info("Script found, getting details.");
+        ScriptDetails scriptDetails = scriptRepository.findScriptDetailsById(id).orElseThrow();
+        List<ScriptCharacterDetails> scriptCharacterDetails = scriptRepository.findScriptCharacterDetailsByScriptId(id);
+        scriptDetails = scriptDetails.toBuilder()
+                .scriptCharactersDetails(scriptCharacterDetails)
+                .build();
+        log.info("Details found.");
+        return dtoMapper.mapScript(script, scriptDetails);
     }
 
     public List<ScriptDto> getAllScripts(){
@@ -39,6 +46,13 @@ public class ScriptService {
         List<Script> scripts = scriptRepository.findAll();
         log.info("Scripts found.");
         return dtoMapper.mapScriptList(scripts);
+    }
+
+    public List<ScriptHeader> getAllScriptHeaders(){
+        log.info("Getting all script headers");
+        List<ScriptHeader> scriptHeaders = scriptRepository.findAllScriptHeaders();
+        log.info("Headers found.");
+        return scriptHeaders;
     }
 
     public long createScript(ScriptDto scriptDto){
@@ -59,9 +73,6 @@ public class ScriptService {
         String name = scriptDto.name();
         log.info("Checking if script exists.");
         Script script = throwIfNotFoundById(id, scriptRepository);
-        List<Long> characterIdsOrder = script.getCharacters().stream()
-                .map(BotCEntity::getId)
-                .toList();
         if(!script.getName().equals(scriptDto.name())) {
             throwIfExistsByName(name, scriptRepository);
         }

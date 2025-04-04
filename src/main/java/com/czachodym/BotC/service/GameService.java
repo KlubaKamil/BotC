@@ -3,6 +3,7 @@ package com.czachodym.BotC.service;
 import com.czachodym.BotC.dao.*;
 import com.czachodym.BotC.dto.CharacterDto;
 import com.czachodym.BotC.dto.GameDto;
+import com.czachodym.BotC.dto.headers.GameHeader;
 import com.czachodym.BotC.dto.PlaceDto;
 import com.czachodym.BotC.dto.util.AssignmentDto;
 import com.czachodym.BotC.dto.util.TransformationDto;
@@ -46,6 +47,13 @@ public class GameService {
         List<Game> games = gameRepository.findAll();
         log.info("Games found.");
         return dtoMapper.mapGameList(games);
+    }
+
+    public List<GameHeader> getAllGameHeaders(){
+        log.info("Getting all game headers");
+        List<GameHeader> gameHeaders = gameRepository.findAllGameHeaders();
+        log.info("Headers found.");
+        return gameHeaders;
     }
 
     public long createGame(GameDto gameDto){

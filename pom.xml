@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.czachodym</groupId>
 	<artifactId>BotC</artifactId>
-	<version>1.1.0</version>
+	<version>1.2.0</version>
 	<name>BotC</name>
 	<description>Blood on the Clocktower archive app</description>
 	<url/>

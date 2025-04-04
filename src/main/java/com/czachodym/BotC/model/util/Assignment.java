@@ -3,10 +3,7 @@ package com.czachodym.BotC.model.util;
 import com.czachodym.BotC.model.Character;
 import com.czachodym.BotC.model.Player;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 

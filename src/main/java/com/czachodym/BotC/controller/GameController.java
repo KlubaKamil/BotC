@@ -1,6 +1,7 @@
 package com.czachodym.BotC.controller;
 
 import com.czachodym.BotC.dto.GameDto;
+import com.czachodym.BotC.dto.headers.GameHeader;
 import com.czachodym.BotC.service.GameService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,8 @@ public class GameController {
     @Autowired
     private GameService gameService;
 
+
+
     @GetMapping("/{id}")
     public ResponseEntity<GameDto> getGame(@PathVariable long id){
         log.info("Getting a game: {}", id);
@@ -33,6 +36,14 @@ public class GameController {
         log.info("Getting all games.");
         List<GameDto> gameDtos = gameService.getAllGames();
         log.info("Finished getting all games");
+        return ResponseEntity.ok(gameDtos);
+    }
+
+    @GetMapping("/headers")
+    public ResponseEntity<List<GameHeader>> getAllGameHeaders(){
+        log.info("Getting all game headers.");
+        List<GameHeader> gameDtos = gameService.getAllGameHeaders();
+        log.info("Finished getting all game headers");
         return ResponseEntity.ok(gameDtos);
     }
     

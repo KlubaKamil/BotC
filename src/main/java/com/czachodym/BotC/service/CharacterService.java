@@ -2,6 +2,9 @@ package com.czachodym.BotC.service;
 
 import com.czachodym.BotC.dao.CharacterRepository;
 import com.czachodym.BotC.dto.CharacterDto;
+import com.czachodym.BotC.dto.details.character.CharacterDetails;
+import com.czachodym.BotC.dto.details.character.CharacterInScriptDetails;
+import com.czachodym.BotC.dto.headers.CharacterHeader;
 import com.czachodym.BotC.model.Character;
 import com.czachodym.BotC.service.util.DtoMapper;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +27,13 @@ public class CharacterService {
     public CharacterDto getCharacter(long id){
         log.info("Checking if character exists.");
         Character character = throwIfNotFoundById(id, characterRepository);
-        log.info("Character found.");
-        return dtoMapper.mapCharacter(character);
+        log.info("Character found, getting details.");
+        CharacterDetails characterDetails = characterRepository.findCharacterDetailsById(id).orElseThrow();
+        List<CharacterInScriptDetails> characterInScriptsDetails = characterRepository.findCharacterInScriptDetailsById(id);
+        characterDetails = characterDetails.toBuilder()
+                .characterInScriptsDetails(characterInScriptsDetails)
+                .build();
+        return dtoMapper.mapCharacter(character, characterDetails);
     }
 
     public List<CharacterDto> getAllCharacters(){
@@ -33,6 +41,13 @@ public class CharacterService {
         List<Character> characters = characterRepository.findAll();
         log.info("Characters found.");
         return dtoMapper.mapCharacterList(characters);
+    }
+
+    public List<CharacterHeader> getAllCharacterHeaders(){
+        log.info("Getting all character headers");
+        List<CharacterHeader> characterHeaders = characterRepository.findAllCharacterHeaders();
+        log.info("Headers found.");
+        return characterHeaders;
     }
 
     public long createCharacter(CharacterDto characterDto){

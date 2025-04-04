@@ -1,5 +1,6 @@
 package com.czachodym.BotC.dto;
 
+import com.czachodym.BotC.dto.details.character.CharacterDetails;
 import com.czachodym.BotC.model.Alignment;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -16,5 +17,6 @@ public record CharacterDto(
         Alignment alignment,
         @NotBlank
         String description,
-        String linkToWiki
+        String linkToWiki,
+        CharacterDetails characterDetails
 ){}

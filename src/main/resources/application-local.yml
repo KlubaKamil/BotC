@@ -16,5 +16,6 @@ spring:
   sql:
     init:
       data-locations: classpath:data-local.sql
+#      data-locations: classpath:data2-local.sql
 
 frontend-url: "*"

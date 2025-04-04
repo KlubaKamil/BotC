@@ -1,6 +1,9 @@
 package com.czachodym.BotC.service.util;
 
 import com.czachodym.BotC.dto.*;
+import com.czachodym.BotC.dto.details.character.CharacterDetails;
+import com.czachodym.BotC.dto.details.player.PlayerDetails;
+import com.czachodym.BotC.dto.details.script.ScriptDetails;
 import com.czachodym.BotC.dto.util.AssignmentDto;
 import com.czachodym.BotC.dto.util.TransformationDto;
 import com.czachodym.BotC.model.*;
@@ -16,10 +19,15 @@ import java.util.List;
 @Slf4j
 public class DtoMapper {
     public ScriptDto mapScript(Script script){
+        return mapScript(script, null);
+    }
+
+    public ScriptDto mapScript(Script script, ScriptDetails scriptDetails){
         return ScriptDto.builder()
                 .id(script.getId())
                 .name(script.getName())
                 .characters(mapCharacterList(script.getCharacters()))
+                .scriptDetails(scriptDetails)
                 .build();
     }
 
@@ -30,6 +38,10 @@ public class DtoMapper {
     }
 
     public CharacterDto mapCharacter(Character character){
+        return mapCharacter(character, null);
+    }
+
+    public CharacterDto mapCharacter(Character character, CharacterDetails characterDetails){
         return character == null ? null :
                 CharacterDto.builder()
                 .id(character.getId())
@@ -38,6 +50,7 @@ public class DtoMapper {
                 .alignment(character.getAlignment())
                 .description(character.getDescription())
                 .linkToWiki(character.getLinkToWiki())
+                .characterDetails(characterDetails)
                 .build();
     }
 
@@ -67,10 +80,15 @@ public class DtoMapper {
                 .toList();
     }
 
-    public PlayerDto mapPlayer(Player player){
+    public PlayerDto mapPlayer(Player player) {
+        return mapPlayer(player, null);
+    }
+
+    public PlayerDto mapPlayer(Player player, PlayerDetails playerDetails){
         return PlayerDto.builder()
                 .id(player.getId())
                 .name(player.getName())
+                .playerDetails(playerDetails)
                 .build();
     }
 

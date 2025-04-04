@@ -1,6 +1,7 @@
 package com.czachodym.BotC.controller;
 
 import com.czachodym.BotC.dto.PlayerDto;
+import com.czachodym.BotC.dto.headers.PlayerHeader;
 import com.czachodym.BotC.service.PlayerService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,14 @@ public class PlayerController {
         List<PlayerDto> playerDtos = playerService.getAllPlayers();
         log.info("Finished getting all players");
         return ResponseEntity.ok(playerDtos);
+    }
+
+    @GetMapping("/headers")
+    public ResponseEntity<List<PlayerHeader>> getAllPlayerHeaders(){
+        log.info("Getting all player headers.");
+        List<PlayerHeader> playerHeaders = playerService.getAllPlayerHeaders();
+        log.info("Finished getting all player headers");
+        return ResponseEntity.ok(playerHeaders);
     }
 
     @PutMapping

@@ -1,6 +1,7 @@
 package com.czachodym.BotC.controller;
 
 import com.czachodym.BotC.dto.ScriptDto;
+import com.czachodym.BotC.dto.headers.ScriptHeader;
 import com.czachodym.BotC.service.ScriptService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,14 @@ public class ScriptController {
         List<ScriptDto> scriptDtos = scriptService.getAllScripts();
         log.info("Finished getting all scripts");
         return ResponseEntity.ok(scriptDtos);
+    }
+
+    @GetMapping("/headers")
+    public ResponseEntity<List<ScriptHeader>> getAllGameHeaders(){
+        log.info("Getting all script headers.");
+        List<ScriptHeader> scriptHeaders = scriptService.getAllScriptHeaders();
+        log.info("Finished getting all script headers");
+        return ResponseEntity.ok(scriptHeaders);
     }
 
     @PutMapping

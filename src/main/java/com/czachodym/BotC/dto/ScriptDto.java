@@ -1,5 +1,6 @@
 package com.czachodym.BotC.dto;
 
+import com.czachodym.BotC.dto.details.script.ScriptDetails;
 import jakarta.annotation.Nonnull;
 import lombok.Builder;
 
@@ -11,5 +12,6 @@ public record ScriptDto(
     @Nonnull
     String name,
     @Nonnull
-    List<CharacterDto> characters
+    List<CharacterDto> characters,
+    ScriptDetails scriptDetails
 ){}

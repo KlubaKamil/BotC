@@ -2,6 +2,10 @@ package com.czachodym.BotC.service;
 
 import com.czachodym.BotC.dao.PlayerRepository;
 import com.czachodym.BotC.dto.PlayerDto;
+import com.czachodym.BotC.dto.details.player.PlayerCharacterDetails;
+import com.czachodym.BotC.dto.details.player.PlayerDetails;
+import com.czachodym.BotC.dto.details.player.PlayerScriptDetails;
+import com.czachodym.BotC.dto.headers.PlayerHeader;
 import com.czachodym.BotC.model.Player;
 import com.czachodym.BotC.service.util.DtoMapper;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +28,14 @@ public class PlayerService {
     public PlayerDto getPlayer(long id){
         log.info("Checking if player exists.");
         Player player = throwIfNotFoundById(id, playerRepository);
-        log.info("Player found.");
-        return dtoMapper.mapPlayer(player);
+        log.info("Player found, getting details.");
+        List<PlayerScriptDetails> playerScriptsDetails = playerRepository.findPlayerScriptDetailsById(id);
+        List<PlayerCharacterDetails> playerCharactersDetails = playerRepository.findPlayerCharacterDetailsById(id);
+        PlayerDetails playerDetails = PlayerDetails.builder()
+                .playerScriptsDetails(playerScriptsDetails)
+                .playerCharactersDetails(playerCharactersDetails)
+                .build();
+        return dtoMapper.mapPlayer(player, playerDetails);
     }
 
     public List<PlayerDto> getAllPlayers(){
@@ -33,6 +43,13 @@ public class PlayerService {
         List<Player> players = playerRepository.findAll();
         log.info("Players found.");
         return dtoMapper.mapPlayerList(players);
+    }
+
+    public List<PlayerHeader> getAllPlayerHeaders(){
+        log.info("Getting all player headers");
+        List<PlayerHeader> playerHeaders = playerRepository.findAllPlayerHeaders();
+        log.info("Headers found.");
+        return playerHeaders;
     }
 
     public long createPlayer(PlayerDto playerDto){

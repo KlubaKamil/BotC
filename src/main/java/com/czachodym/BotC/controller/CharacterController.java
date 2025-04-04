@@ -1,6 +1,7 @@
 package com.czachodym.BotC.controller;
 
 import com.czachodym.BotC.dto.CharacterDto;
+import com.czachodym.BotC.dto.headers.CharacterHeader;
 import com.czachodym.BotC.service.CharacterService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,14 @@ public class CharacterController {
         List<CharacterDto> characterDtos = characterService.getAllCharacters();
         log.info("Finished getting all characters");
         return ResponseEntity.ok(characterDtos);
+    }
+
+    @GetMapping("/headers")
+    public ResponseEntity<List<CharacterHeader>> getAllCharacterHeaders(){
+        log.info("Getting all character headers.");
+        List<CharacterHeader> characterHeaders = characterService.getAllCharacterHeaders();
+        log.info("Finished getting all character headers");
+        return ResponseEntity.ok(characterHeaders);
     }
 
     @PutMapping

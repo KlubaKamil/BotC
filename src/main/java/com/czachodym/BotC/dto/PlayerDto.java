@@ -1,5 +1,6 @@
 package com.czachodym.BotC.dto;
 
+import com.czachodym.BotC.dto.details.player.PlayerDetails;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 
@@ -8,5 +9,6 @@ import lombok.Builder;
 public record PlayerDto(
         long id,
         @NotBlank
-        String name
+        String name,
+        PlayerDetails playerDetails
 ){}
