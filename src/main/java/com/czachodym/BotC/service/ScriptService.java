@@ -116,6 +116,7 @@ public class ScriptService {
 
         return builder
                 .name(scriptDto.name())
+                .notes(scriptDto.notes())
                 .characters(characters)
                 .build();
     }

@@ -3,3 +3,9 @@ spring:
     name: BotC
 
 frontend-url:
+
+jwt:
+  secret: secret
+  token:
+    validity:
+      time: 100000000

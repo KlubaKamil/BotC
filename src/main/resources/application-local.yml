@@ -15,7 +15,13 @@ spring:
       path: /guest/h2-console
   sql:
     init:
-      data-locations: classpath:data-local.sql
-#      data-locations: classpath:data2-local.sql
+#      data-locations: classpath:data-local.sql
+      data-locations: classpath:data2-local.sql
 
 frontend-url: "*"
+
+jwt:
+  secret: secret
+  token:
+    validity:
+      time: 100000000

@@ -29,9 +29,10 @@ public class PlayerService {
         log.info("Checking if player exists.");
         Player player = throwIfNotFoundById(id, playerRepository);
         log.info("Player found, getting details.");
+        PlayerDetails playerDetails = playerRepository.findPlayerDetails(id);
         List<PlayerScriptDetails> playerScriptsDetails = playerRepository.findPlayerScriptDetailsById(id);
         List<PlayerCharacterDetails> playerCharactersDetails = playerRepository.findPlayerCharacterDetailsById(id);
-        PlayerDetails playerDetails = PlayerDetails.builder()
+        playerDetails = playerDetails.toBuilder()
                 .playerScriptsDetails(playerScriptsDetails)
                 .playerCharactersDetails(playerCharactersDetails)
                 .build();

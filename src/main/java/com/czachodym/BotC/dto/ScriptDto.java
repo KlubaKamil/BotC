@@ -11,6 +11,7 @@ public record ScriptDto(
     long id,
     @Nonnull
     String name,
+    String notes,
     @Nonnull
     List<CharacterDto> characters,
     ScriptDetails scriptDetails

@@ -40,6 +40,7 @@ public interface CharacterRepository extends NameJpaRepository<Character, Long> 
 
     @Query("""
             SELECT new com.czachodym.BotC.dto.details.character.CharacterInScriptDetails(
+                s.id,
                 s.name,
                 COUNT(DISTINCT CASE WHEN a.id IS NOT NULL THEN g.id ELSE NULL END),
                 COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
@@ -49,7 +50,7 @@ public interface CharacterRepository extends NameJpaRepository<Character, Long> 
             LEFT JOIN Game g ON g.script.id = s.id
             LEFT JOIN g.assignments a ON a.character.id = :id
             WHERE c.id = :id
-            GROUP BY s.name
+            GROUP BY s.id, s.name
             ORDER BY COUNT(DISTINCT g.id) DESC
         """)
     List<CharacterInScriptDetails> findCharacterInScriptDetailsById(long id);

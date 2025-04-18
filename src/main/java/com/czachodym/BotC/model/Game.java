@@ -36,7 +36,7 @@ public class Game implements Serializable {
     @Column
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate date;
-    @Column
+    @Lob
     private String notes;
     @ManyToOne
     @JoinColumn(name = "place_id")

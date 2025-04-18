@@ -26,6 +26,7 @@ public class DtoMapper {
         return ScriptDto.builder()
                 .id(script.getId())
                 .name(script.getName())
+                .notes(script.getNotes())
                 .characters(mapCharacterList(script.getCharacters()))
                 .scriptDetails(scriptDetails)
                 .build();

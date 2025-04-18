@@ -2,6 +2,7 @@ package com.czachodym.BotC.dao;
 
 import com.czachodym.BotC.dao.util.NameJpaRepository;
 import com.czachodym.BotC.dto.details.player.PlayerCharacterDetails;
+import com.czachodym.BotC.dto.details.player.PlayerDetails;
 import com.czachodym.BotC.dto.details.player.PlayerScriptDetails;
 import com.czachodym.BotC.dto.headers.PlayerHeader;
 import com.czachodym.BotC.model.Player;
@@ -31,8 +32,26 @@ public interface PlayerRepository extends NameJpaRepository<Player, Long> {
         """)
     List<PlayerHeader> findAllPlayerHeaders();
 
+    @Query("""
+            SELECT new com.czachodym.BotC.dto.details.player.PlayerDetails(
+                COUNT(g.id),
+                COUNT(DISTINCT CASE WHEN a.good = true THEN g.id ELSE NULL END),
+                COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
+            )
+            FROM Player p
+            LEFT JOIN Assignment a on p = a.player
+            LEFT JOIN Game g ON g.id = (
+                SELECT g2.id FROM Game g2
+                JOIN g2.assignments a2 
+                WHERE a2.id = a.id
+            )
+            WHERE p.id = :id
+            """)
+    PlayerDetails findPlayerDetails(long id);
+
     @Query("""      
             SELECT new com.czachodym.BotC.dto.details.player.PlayerCharacterDetails(
+                c.id,
                 c.name,
                 COUNT(c.id),
                 COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
@@ -46,12 +65,13 @@ public interface PlayerRepository extends NameJpaRepository<Player, Long> {
                 WHERE a2.id = a.id
             )
             WHERE a.player.id = :id
-            GROUP BY c.name
+            GROUP BY c.id, c.name
         """)
     List<PlayerCharacterDetails> findPlayerCharacterDetailsById(long id);
 
     @Query("""
             SELECT new com.czachodym.BotC.dto.details.player.PlayerScriptDetails(
+                s.id,
                 s.name,
                 COUNT(s.id),
                 COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
@@ -65,7 +85,7 @@ public interface PlayerRepository extends NameJpaRepository<Player, Long> {
             )
             LEFT JOIN Script s ON g.script = s
             WHERE a.player.id = :id
-            GROUP BY s.name
+            GROUP BY s.id, s.name
         """)
     List<PlayerScriptDetails> findPlayerScriptDetailsById(long id);
 }

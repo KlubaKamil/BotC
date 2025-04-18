@@ -25,7 +25,7 @@ public class ScriptController {
     public ResponseEntity<ScriptDto> getScript(@PathVariable long id){
         log.info("Getting a script: {}", id);
         ScriptDto scriptDto = scriptService.getScript(id);
-        log.info("Finished getting a script");
+        log.info("Finished getting a script.");
         return ResponseEntity.ok(scriptDto);
     }
 
@@ -33,7 +33,7 @@ public class ScriptController {
     public ResponseEntity<List<ScriptDto>> getAllScripts(){
         log.info("Getting all scripts.");
         List<ScriptDto> scriptDtos = scriptService.getAllScripts();
-        log.info("Finished getting all scripts");
+        log.info("Finished getting all scripts.");
         return ResponseEntity.ok(scriptDtos);
     }
 
@@ -41,7 +41,7 @@ public class ScriptController {
     public ResponseEntity<List<ScriptHeader>> getAllGameHeaders(){
         log.info("Getting all script headers.");
         List<ScriptHeader> scriptHeaders = scriptService.getAllScriptHeaders();
-        log.info("Finished getting all script headers");
+        log.info("Finished getting all script headers.");
         return ResponseEntity.ok(scriptHeaders);
     }
 

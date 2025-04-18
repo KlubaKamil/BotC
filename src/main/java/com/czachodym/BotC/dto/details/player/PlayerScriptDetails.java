@@ -1,13 +1,15 @@
 package com.czachodym.BotC.dto.details.player;
 
 public record PlayerScriptDetails (
+        long id,
         String scriptName,
         long gamesNumber,
         long wonGamesNumber,
         double winRatio
 ){
-    public PlayerScriptDetails(String scriptName, long gamesNumber, long wonGamesNumber) {
+    public PlayerScriptDetails(long id, String scriptName, long gamesNumber, long wonGamesNumber) {
         this(
+                id,
                 scriptName,
                 gamesNumber,
                 wonGamesNumber,
