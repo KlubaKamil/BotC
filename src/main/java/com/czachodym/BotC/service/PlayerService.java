@@ -1,28 +1,33 @@
 package com.czachodym.BotC.service;
 
+import com.czachodym.BotC.dao.AchievementRepository;
 import com.czachodym.BotC.dao.PlayerRepository;
 import com.czachodym.BotC.dto.PlayerDto;
 import com.czachodym.BotC.dto.details.player.PlayerCharacterDetails;
 import com.czachodym.BotC.dto.details.player.PlayerDetails;
 import com.czachodym.BotC.dto.details.player.PlayerScriptDetails;
 import com.czachodym.BotC.dto.headers.PlayerHeader;
+import com.czachodym.BotC.dto.util.PlayerAchievementDto;
+import com.czachodym.BotC.model.Achievement;
 import com.czachodym.BotC.model.Player;
+import com.czachodym.BotC.model.util.PlayerAchievement;
 import com.czachodym.BotC.service.util.DtoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
-import static com.czachodym.BotC.service.util.CommonMethods.throwIfExistsByName;
-import static com.czachodym.BotC.service.util.CommonMethods.throwIfNotFoundById;
+import static com.czachodym.BotC.service.util.CommonMethods.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class PlayerService {
     private final PlayerRepository playerRepository;
+    private final AchievementRepository achievementRepository;
     private final DtoMapper dtoMapper;
 
     public PlayerDto getPlayer(long id){
@@ -102,8 +107,28 @@ public class PlayerService {
     }
 
     private Player buildPlayer(PlayerDto playerDto, Player.PlayerBuilder<?,?> builder){
+        log.info("Validating a playerDto. Looking for playerAchievements");
+        List<PlayerAchievementDto> playerAchievementDtos = playerDto.playerAchievements();
+        List<Long> achievementIds = playerAchievementDtos.stream()
+                .map(a -> a.achievement().id())
+                .toList();
+        List<Achievement> achievements = findEntitiesById(achievementIds, achievementRepository);
+        List<PlayerAchievement> playerAchievements = playerAchievementDtos.stream()
+                .map(pad -> {
+                    Long padId = pad.id();
+                    Achievement achievement = achievements.stream()
+                            .filter(a -> pad.achievement().id() == a.getId()).findFirst().orElseThrow();
+                    return PlayerAchievement.builder()
+                            .id(padId)
+                            .achievement(achievement)
+                            .date(padId == null ? LocalDate.now() : pad.date())
+                            .build();
+                })
+                .toList();
         return builder
                 .name(playerDto.name())
+                .discordName(playerDto.discordName())
+                .playerAchievements(playerAchievements)
                 .build();
     }
 }

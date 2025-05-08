@@ -9,9 +9,14 @@ import com.czachodym.BotC.model.Character;
 import com.czachodym.BotC.service.util.DtoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static com.czachodym.BotC.service.util.CommonMethods.throwIfExistsByName;
@@ -21,6 +26,9 @@ import static com.czachodym.BotC.service.util.CommonMethods.throwIfNotFoundById;
 @RequiredArgsConstructor
 @Slf4j
 public class CharacterService {
+
+    private final String CHARACTER_IMAGES_DIR = "character_images";
+    private final Path root = Paths.get(CHARACTER_IMAGES_DIR);
     private final CharacterRepository characterRepository;
     private final DtoMapper dtoMapper;
 
@@ -48,6 +56,15 @@ public class CharacterService {
         List<CharacterHeader> characterHeaders = characterRepository.findAllCharacterHeaders();
         log.info("Headers found.");
         return characterHeaders;
+    }
+
+    public Resource getCharacterImage(String size, String characterName){
+        Path filePath = root.resolve(Paths.get(size + "/" + characterName + ".png"));
+        try {
+            return new UrlResource(filePath.toUri());
+        } catch (MalformedURLException e) {
+            return null;
+        }
     }
 
     public long createCharacter(CharacterDto characterDto){
@@ -105,6 +122,7 @@ public class CharacterService {
                 .alignment(characterDto.alignment())
                 .description(characterDto.description())
                 .linkToWiki(characterDto.linkToWiki())
+                .tips(characterDto.tips())
                 .build();
     }
 }

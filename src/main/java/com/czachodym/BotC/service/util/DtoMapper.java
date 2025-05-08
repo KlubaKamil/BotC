@@ -1,14 +1,17 @@
 package com.czachodym.BotC.service.util;
 
 import com.czachodym.BotC.dto.*;
+import com.czachodym.BotC.dto.details.achievement.AchievementDetails;
 import com.czachodym.BotC.dto.details.character.CharacterDetails;
 import com.czachodym.BotC.dto.details.player.PlayerDetails;
 import com.czachodym.BotC.dto.details.script.ScriptDetails;
 import com.czachodym.BotC.dto.util.AssignmentDto;
+import com.czachodym.BotC.dto.util.PlayerAchievementDto;
 import com.czachodym.BotC.dto.util.TransformationDto;
 import com.czachodym.BotC.model.*;
 import com.czachodym.BotC.model.Character;
 import com.czachodym.BotC.model.util.Assignment;
+import com.czachodym.BotC.model.util.PlayerAchievement;
 import com.czachodym.BotC.model.util.Transformation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -26,6 +29,7 @@ public class DtoMapper {
         return ScriptDto.builder()
                 .id(script.getId())
                 .name(script.getName())
+                .author(script.getAuthor())
                 .notes(script.getNotes())
                 .characters(mapCharacterList(script.getCharacters()))
                 .scriptDetails(scriptDetails)
@@ -51,6 +55,7 @@ public class DtoMapper {
                 .alignment(character.getAlignment())
                 .description(character.getDescription())
                 .linkToWiki(character.getLinkToWiki())
+                .tips(character.getTips())
                 .characterDetails(characterDetails)
                 .build();
     }
@@ -72,6 +77,8 @@ public class DtoMapper {
                 .date(game.getDate())
                 .notes(game.getNotes())
                 .place(mapPlace(game.getPlace()))
+                .imageUrl(game.getImageUrl())
+                .balanceMarks(game.getBalanceMarks())
                 .build();
     }
 
@@ -89,6 +96,8 @@ public class DtoMapper {
         return PlayerDto.builder()
                 .id(player.getId())
                 .name(player.getName())
+                .discordName(player.getDiscordName())
+                .playerAchievements(mapPlayerAchievementList(player.getPlayerAchievements()))
                 .playerDetails(playerDetails)
                 .build();
     }
@@ -105,7 +114,7 @@ public class DtoMapper {
                 .player(mapPlayer(assignment.getPlayer()))
                 .index(assignment.getAssignmentIndex())
                 .good(assignment.isGood())
-                .transformations(mapTransformations(assignment.getTransformations()))
+                .transformations(mapTransformationList(assignment.getTransformations()))
                 .build();
     }
 
@@ -122,7 +131,7 @@ public class DtoMapper {
                 .build();
     }
 
-    public List<TransformationDto> mapTransformations(List<Transformation> transformations){
+    public List<TransformationDto> mapTransformationList(List<Transformation> transformations){
         return transformations.stream()
                 .map(this::mapTransformation)
                 .toList();
@@ -140,4 +149,39 @@ public class DtoMapper {
                 .map(this::mapPlace)
                 .toList();
     }
+
+    public AchievementDto mapAchievement(Achievement achievement) {
+        return mapAchievement(achievement, null);
+    }
+
+    public AchievementDto mapAchievement(Achievement achievement, AchievementDetails achievementDetails){
+        return AchievementDto.builder()
+                .id(achievement.getId())
+                .name(achievement.getName())
+                .description(achievement.getDescription())
+                .achievementDetails(achievementDetails)
+                .build();
+    }
+
+    public List<AchievementDto> mapAchievementList(List<Achievement> achievements){
+        return achievements.stream()
+                .map(this::mapAchievement)
+                .toList();
+    }
+
+    public PlayerAchievementDto mapPlayerAchievement(PlayerAchievement playerAchievement){
+        return PlayerAchievementDto.builder()
+                .id(playerAchievement.getId())
+                .achievement(mapAchievement(playerAchievement.getAchievement()))
+                .date(playerAchievement.getDate())
+                .build();
+    }
+
+    public List<PlayerAchievementDto> mapPlayerAchievementList(List<PlayerAchievement> playerAchievements){
+        return playerAchievements.stream()
+                .map(this::mapPlayerAchievement)
+                .toList();
+    }
+
+
 }

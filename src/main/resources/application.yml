@@ -1,11 +1,15 @@
 spring:
   application:
     name: BotC
-
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+      
 frontend-url:
 
 jwt:
-  secret: secret
+  secret: secrettsdfgdsfg
   token:
     validity:
-      time: 100000000
+      time: 2592000

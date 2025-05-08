@@ -3,6 +3,7 @@ package com.czachodym.BotC.controller;
 import com.czachodym.BotC.dto.ScriptDto;
 import com.czachodym.BotC.dto.headers.ScriptHeader;
 import com.czachodym.BotC.service.ScriptService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +17,10 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/script")
+@RequiredArgsConstructor
 @Slf4j
 public class ScriptController {
-    @Autowired
-    private ScriptService scriptService;
+    private final ScriptService scriptService;
 
     @GetMapping("/{id}")
     public ResponseEntity<ScriptDto> getScript(@PathVariable long id){

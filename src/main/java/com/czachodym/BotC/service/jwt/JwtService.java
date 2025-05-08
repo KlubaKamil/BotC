@@ -25,21 +25,11 @@ public class JwtService {
         final String password = authenticationRequest.password();
 
         log.info("Validating authentication.");
-        validateAuthentication(login, password);
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(login, password));
         log.info("Validation successful, generating token.");
         final UserDetails userDetails = userService.loadUserByUsername(login);
         String token = jwtTokenUtil.generateToken(userDetails);
         log.info("Token created.");
         return token;
-    }
-
-    private void validateAuthentication(String username, String password) throws RuntimeException {
-        try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-        } catch (DisabledException e) {
-            throw new RuntimeException("USER_DISABLED", e);
-        } catch (BadCredentialsException e) {
-            throw new RuntimeException("INVALID_CREDENTIALS", e);
-        }
     }
 }

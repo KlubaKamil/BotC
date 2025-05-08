@@ -21,7 +21,7 @@ spring:
 frontend-url: "*"
 
 jwt:
-  secret: secret
+  secret: secrettttttttttttt
   token:
     validity:
-      time: 100000000
+      time: 2000

@@ -4,8 +4,8 @@ package com.czachodym.BotC.controller;
 import com.czachodym.BotC.dto.PlaceDto;
 import com.czachodym.BotC.service.PlaceService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,10 +17,10 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/place")
+@RequiredArgsConstructor
 @Slf4j
 public class PlaceController {
-    @Autowired
-    private PlaceService placeService;
+    private final PlaceService placeService;
 
     @GetMapping("/{id}")
     public ResponseEntity<PlaceDto> getPlace(@PathVariable long id){

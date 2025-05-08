@@ -19,6 +19,8 @@ import java.util.List;
 @ToString(callSuper = true)
 @NoArgsConstructor
 public class Script extends BotCEntity implements Serializable {
+    @Column
+    private String author;
     @Lob
     private String notes;
     @ManyToAny

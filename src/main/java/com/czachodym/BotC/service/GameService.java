@@ -12,11 +12,21 @@ import com.czachodym.BotC.model.Character;
 import com.czachodym.BotC.model.util.Assignment;
 import com.czachodym.BotC.model.util.Transformation;
 import com.czachodym.BotC.service.util.DtoMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.UrlResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -28,35 +38,42 @@ import static com.czachodym.BotC.service.util.CommonMethods.throwIfNotFoundById;
 @RequiredArgsConstructor
 @Slf4j
 public class GameService {
+    private final String IMAGES_DIR = "games";
     private final GameRepository gameRepository;
     private final ScriptRepository scriptRepository;
     private final PlayerRepository playerRepository;
     private final CharacterRepository characterRepository;
     private final PlaceRepository placeRepository;
     private final DtoMapper dtoMapper;
+    private final Path root = Paths.get(IMAGES_DIR);
 
-    public GameDto getGame(long id){
+    @PostConstruct
+    public void init() throws IOException {
+        Files.createDirectories(root);
+    }
+
+    public GameDto getGame(long id) {
         log.info("Checking if game exists.");
         Game game = throwIfNotFoundById(id, gameRepository);
         log.info("Game found.");
         return dtoMapper.mapGame(game);
     }
 
-    public List<GameDto> getAllGames(){
+    public List<GameDto> getAllGames() {
         log.info("Getting all games");
         List<Game> games = gameRepository.findAll();
         log.info("Games found.");
         return dtoMapper.mapGameList(games);
     }
 
-    public List<GameHeader> getAllGameHeaders(){
+    public List<GameHeader> getAllGameHeaders() {
         log.info("Getting all game headers");
         List<GameHeader> gameHeaders = gameRepository.findAllGameHeaders();
         log.info("Headers found.");
         return gameHeaders;
     }
 
-    public long createGame(GameDto gameDto){
+    public long createGame(GameDto gameDto) {
         Game game = buildGame(gameDto);
         log.info("Saving a new game.");
         Game savedGame = gameRepository.save(game);
@@ -66,7 +83,7 @@ public class GameService {
         return game.getId();
     }
 
-    public long editGame(GameDto gameDto){
+    public long editGame(GameDto gameDto) {
         long id = gameDto.id();
         log.info("Checking if game exists.");
         Game game = throwIfNotFoundById(id, gameRepository);
@@ -75,17 +92,64 @@ public class GameService {
         log.info("Updating a game.");
         gameRepository.save(updatedGame);
         log.info("Game updated. Id: {}", id);
-
+        String imageUrl = gameDto.imageUrl();
+        if(imageUrl == null){
+            log.info("Trying to delete image.");
+            deleteImage(gameDto.id());
+        }
         return id;
     }
 
     @Transactional
-    public void deleteGame(long id){
+    public void deleteGame(long id) {
         log.info("Deleting a game: {}", id);
         boolean exists = gameRepository.existsById(id);
         gameRepository.deleteById(id);
         boolean deleted = exists & !gameRepository.existsById(id);
         log.info("Deleted: {}", deleted);
+    }
+
+    public String uploadImage(long id, MultipartFile image) {
+        try{
+            log.info("Checking if game exists.");
+            Game game = throwIfNotFoundById(id, gameRepository);
+            log.info("Game found, saving.");
+            String filename = "game_" + id + ".jpg";
+            Path filePath = root.resolve(filename);
+            Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            String url = "game/" + id + "/image";
+            game.setImageUrl(url);
+            gameRepository.save(game);
+            log.info("Image saved.");
+            return url;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    public Resource getImage(long id){
+        Game game = throwIfNotFoundById(id, gameRepository);
+        if (game.getImageUrl() == null) {
+            return null;
+        }
+
+        Path filePath = root.resolve(Paths.get("game_" + id + ".jpg"));
+        try {
+            return new UrlResource(filePath.toUri());
+        } catch (MalformedURLException e) {
+            return null;
+        }
+    }
+
+
+    private void deleteImage(long id) {
+        Path filePath = root.resolve(Paths.get("game_" + id + ".jpg"));
+        try {
+            Files.delete(filePath);
+            log.info("Image deleted.");
+        } catch (IOException e) {
+            log.info("No image found.");
+        }
     }
 
     private Game buildGame(GameDto gameDto){
@@ -142,6 +206,8 @@ public class GameService {
                 .date(gameDto.date())
                 .notes(gameDto.notes())
                 .place(place)
+                .imageUrl(gameDto.imageUrl())
+                .balanceMarks(gameDto.balanceMarks())
                 .build();
     }
 

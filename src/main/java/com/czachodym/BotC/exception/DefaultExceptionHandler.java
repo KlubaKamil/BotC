@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
@@ -37,5 +38,11 @@ public class DefaultExceptionHandler {
     public ResponseEntity<?> SQLIntegrityConstraintViolationExceptionHandler(Exception exception, WebRequest request){
         log.info("{}", exception.getMessage());
         return new ResponseEntity<>("Precondition required", new HttpHeaders(), HttpStatus.PRECONDITION_REQUIRED);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<?> badCredentialsExceptionHandler(Exception exception, WebRequest request){
+        log.info("{}", exception.getMessage());
+        return new ResponseEntity<>("Wrong credentials", new HttpHeaders(), HttpStatus.FORBIDDEN);
     }
 }

@@ -4,6 +4,7 @@ import com.czachodym.BotC.dto.PlayerDto;
 import com.czachodym.BotC.dto.headers.PlayerHeader;
 import com.czachodym.BotC.service.PlayerService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,10 +19,11 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/player")
+@RequiredArgsConstructor
 @Slf4j
 public class PlayerController {
-    @Autowired
-    private PlayerService playerService;
+
+    private final PlayerService playerService;
 
     @GetMapping("/{id}")
     public ResponseEntity<PlayerDto> getPlayer(@PathVariable long id){

@@ -3,23 +3,25 @@ package com.czachodym.BotC.controller;
 import com.czachodym.BotC.dto.GameDto;
 import com.czachodym.BotC.dto.headers.GameHeader;
 import com.czachodym.BotC.service.GameService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequestMapping("/game")
+@RequiredArgsConstructor
 @Slf4j
 public class GameController {
-    @Autowired
-    private GameService gameService;
+    private final GameService gameService;
 
 
 
@@ -69,5 +71,34 @@ public class GameController {
         log.info("Deleting a game: {}", id);
         gameService.deleteGame(id);
         log.info("Finished deleting a game");
+    }
+
+    @PostMapping("/{id}/image")
+    public ResponseEntity<Map<String, Long>> uploadImage(@PathVariable Long id, @RequestParam("image") MultipartFile image) {
+        log.info("Uploading an image.");
+        String url = gameService.uploadImage(id, image);
+        log.info("Finished uploading an image.");
+        return ResponseEntity.status(OK).body(Map.of("id", id));
+    }
+
+    @PutMapping("/{id}/image")
+    public ResponseEntity<Map<String, Long>> uploadImage2(@PathVariable Long id, @RequestParam("image") MultipartFile image) {
+        log.info("Uploading an image.");
+        String url = gameService.uploadImage(id, image);
+        log.info("Finished uploading an image.");
+        return url == null ? ResponseEntity.internalServerError().build() :
+                ResponseEntity.status(CREATED).body(Map.of("id", id));
+    }
+
+    @GetMapping("/{id}/image")
+    public ResponseEntity<Resource> getImage(@PathVariable Long id) {
+        log.info("Getting an image.");
+        Resource resource = gameService.getImage(id);
+        log.info("Finished getting an image.");
+        return resource == null ?
+                ResponseEntity.notFound().build() :
+                ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG)
+                        .body(resource);
     }
 }

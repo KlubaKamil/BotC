@@ -17,6 +17,7 @@ public interface PlayerRepository extends NameJpaRepository<Player, Long> {
             SELECT new com.czachodym.BotC.dto.headers.PlayerHeader(
                 p.id,
                 p.name,
+                p.discordName,
                 COUNT(a.id),
                 COUNT(DISTINCT CASE WHEN a.good = true THEN g.id ELSE NULL END), 
                 COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)

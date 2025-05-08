@@ -9,7 +9,7 @@ import java.util.List;
 
 @Builder
 public record GameDto (
-        long id,
+        Long id,
         ScriptDto script,
         PlayerDto storyteller,
         CharacterDto fabled,
@@ -18,5 +18,7 @@ public record GameDto (
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
         LocalDate date,
         String notes,
-        PlaceDto place
+        PlaceDto place,
+        String imageUrl,
+        List<Integer> balanceMarks
 ){}

@@ -4,8 +4,10 @@ import com.czachodym.BotC.dto.CharacterDto;
 import com.czachodym.BotC.dto.headers.CharacterHeader;
 import com.czachodym.BotC.service.CharacterService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,10 +19,10 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/character")
+@RequiredArgsConstructor
 @Slf4j
 public class CharacterController {
-    @Autowired
-    private CharacterService characterService;
+    private final CharacterService characterService;
 
     @GetMapping("/{id}")
     public ResponseEntity<CharacterDto> getCharacter(@PathVariable long id){
@@ -44,6 +46,16 @@ public class CharacterController {
         List<CharacterHeader> characterHeaders = characterService.getAllCharacterHeaders();
         log.info("Finished getting all character headers");
         return ResponseEntity.ok(characterHeaders);
+    }
+
+    @GetMapping("/image/{size}/{characterName}")
+    public ResponseEntity<Resource> getCharacterImage(@PathVariable String size, @PathVariable String characterName){
+        Resource resource = characterService.getCharacterImage(size, characterName);
+        return resource == null ?
+                ResponseEntity.notFound().build() :
+                ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_PNG)
+                        .body(resource);
     }
 
     @PutMapping

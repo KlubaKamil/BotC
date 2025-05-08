@@ -41,4 +41,10 @@ public class Game implements Serializable {
     @ManyToOne
     @JoinColumn(name = "place_id")
     Place place;
+    @Column
+    private String imageUrl;
+    @ElementCollection
+    @CollectionTable(name = "balance_marks", joinColumns = @JoinColumn(name = "id"))
+    @Column(name = "number")
+    private List<Integer> balanceMarks;
 }
