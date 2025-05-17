@@ -29,7 +29,7 @@ import java.util.Map;
 public class JwtRequestFilter extends OncePerRequestFilter {
     private final UserService userService;
     private final JwtTokenUtil jwtTokenUtil;
-    @Value("${frontend-url}")
+    @Value("${frontend.cors.url}")
     private String frontendUrl;
 
     @Override

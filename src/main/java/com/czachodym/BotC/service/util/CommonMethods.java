@@ -35,4 +35,18 @@ public class CommonMethods {
                 .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(id));
     }
+
+    public static String getIfNull(String value, String otherwise){
+        if(value == null || value.isBlank() || value.isEmpty()){
+            return otherwise;
+        }
+        return value;
+    }
+
+    public static String getIfObjectNull(BotCEntity value, String otherwise){
+        if(value == null || value.getName() == null || value.getName().isBlank() || value.getName().isEmpty()){
+            return otherwise;
+        }
+        return value.getName();
+    }
 }

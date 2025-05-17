@@ -5,10 +5,13 @@ import com.czachodym.BotC.dto.CharacterDto;
 import com.czachodym.BotC.dto.details.character.CharacterDetails;
 import com.czachodym.BotC.dto.details.character.CharacterInScriptDetails;
 import com.czachodym.BotC.dto.headers.CharacterHeader;
+import com.czachodym.BotC.model.Alignment;
 import com.czachodym.BotC.model.Character;
 import com.czachodym.BotC.service.util.DtoMapper;
+import com.czachodym.botcshared.dto.NotificationMode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -19,13 +22,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static com.czachodym.BotC.service.util.CommonMethods.throwIfExistsByName;
-import static com.czachodym.BotC.service.util.CommonMethods.throwIfNotFoundById;
+import static com.czachodym.BotC.service.util.CommonMethods.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class CharacterService {
+    @Value("${frontend.url}")
+    private String FRONTEND_URL;
 
     private final String CHARACTER_IMAGES_DIR = "character_images";
     private final Path root = Paths.get(CHARACTER_IMAGES_DIR);
@@ -103,6 +107,29 @@ public class CharacterService {
         characterRepository.deleteById(id);
         boolean deleted = exists & !characterRepository.existsById(id);
         log.info("Deleted: {}", deleted);
+    }
+
+    public String getMessage(long id, NotificationMode notificationMode){
+        Character character = throwIfNotFoundById(id, characterRepository);
+        String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nową postać!" : "Edytowano postać!";
+        String name = character.getName();
+        int maxStartNumber = character.getMaxStartNumber();
+        Alignment alignment = character.getAlignment();
+        String description = getIfNull(character.getDescription(), "-");
+        String linkToWiki = getIfNull(character.getLinkToWiki(), "-");
+        String tips = getIfNull(character.getTips(), "-");
+        return """
+                %s
+                Id: %d
+                Nazwa: %s
+                Max liczba na start: %d
+                Przynależność: %s
+                Opis: %s
+                Link do wiki: %s
+                Wskazówki: %s
+                Kliknij i zobacz: %s/characters/%d
+                """.formatted(modeMessage, id, name, maxStartNumber, alignment, description, linkToWiki, tips,
+                    FRONTEND_URL, id);
     }
 
     private Character buildCharacter(CharacterDto characterDto){

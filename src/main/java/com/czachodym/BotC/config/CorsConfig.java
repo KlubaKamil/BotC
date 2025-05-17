@@ -7,7 +7,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
-    @Value("${frontend-url}")
+    @Value("${frontend.cors.url}")
     private String frontendUrl;
 
     @Override

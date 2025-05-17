@@ -12,8 +12,13 @@ spring:
     properties:
       hibernate:
         show_sql: false
+  kafka:
+    bootstrap-servers: kafka:9092
 
-frontend-url: ${FRONTEND_URL}
+frontend:
+  cors:
+    url: ${FRONTEND_URL}
+  url: https://www.grimlog.pl
 
 jwt:
   secret: ${JWT_SECRET}

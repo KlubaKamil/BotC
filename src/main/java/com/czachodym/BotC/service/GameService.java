@@ -12,9 +12,11 @@ import com.czachodym.BotC.model.Character;
 import com.czachodym.BotC.model.util.Assignment;
 import com.czachodym.BotC.model.util.Transformation;
 import com.czachodym.BotC.service.util.DtoMapper;
+import com.czachodym.botcshared.dto.NotificationMode;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -31,13 +33,14 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.czachodym.BotC.service.util.CommonMethods.findEntitiesById;
-import static com.czachodym.BotC.service.util.CommonMethods.throwIfNotFoundById;
+import static com.czachodym.BotC.service.util.CommonMethods.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class GameService {
+    @Value("${frontend.url}")
+    private String FRONTEND_URL;
     private final String IMAGES_DIR = "games";
     private final GameRepository gameRepository;
     private final ScriptRepository scriptRepository;
@@ -141,6 +144,68 @@ public class GameService {
         }
     }
 
+    public String getMessage(long id, NotificationMode notificationMode){
+        String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nową grę!" : "Edytowano grę!";
+        Game game = throwIfNotFoundById(id, gameRepository);
+        String script = game.getScript().getName();
+        String storyteller = game.getStoryteller().getName();
+        String fabled = getIfObjectNull(game.getFabled(), "-");
+        String goodWon = game.isGoodWon() ? "Dobro" : "Zło";
+        String date = game.getDate() == null ? "-" : game.getDate().toString();
+        String place = getIfObjectNull(game.getPlace(), "-");
+        String balance = getBalance(game.getBalanceMarks());
+        String assignments = getAssignments(game.getAssignments());
+        String notes = getIfNull(game.getNotes(), "-");
+        return """
+                %s
+                Id: %d
+                Skrypt: %s
+                Narrator: %s
+                Legenda: %s
+                Zwycięzcy: %s
+                Data: %s
+                Lokalizacja: %s
+                Balans: %s
+                Lista graczy i postaci:
+                %s
+                Notatki: 
+                %s
+                Kliknij i zobacz: %s/games/%d
+                """.formatted(modeMessage, id, script, storyteller, fabled, goodWon, date, place, balance, assignments,
+                    notes, FRONTEND_URL, id);
+    }
+
+    private String getBalance(List<Integer> balanceMarks){
+        if(balanceMarks == null || balanceMarks.size() == 0) return "-";
+        double average = balanceMarks.stream()
+                .mapToInt(Integer::intValue)
+                .average()
+                .orElse(0);
+        average = Math.round(average * 10.0) / 10.0;
+        String balance = average + " [";
+        balance += String.join(", ", balanceMarks.stream().map(Object::toString).toList());
+        balance += "]; ";
+        balance += balanceMarks.size();
+        balance += " ocen.";
+        return balance;
+    }
+
+    private String getAssignments(List<Assignment> assignments){
+        String message = "";
+        for(Assignment a: assignments){
+            message += "            " + a.getPlayer().getName() + ": " + a.getCharacter().getName() + " - " +
+                    getGood(a.isGood()) + "\n";
+            for(Transformation t: a.getTransformations()){
+                message += "                        Zmiana w: " + t.getCharacter().getName() + " - " +
+                        getGood(t.isGood()) + "\n";
+            }
+        }
+        return message;
+    }
+
+    private String getGood(boolean isGood){
+        return isGood ? "Dobro" : "Zło";
+    }
 
     private void deleteImage(long id) {
         Path filePath = root.resolve(Paths.get("game_" + id + ".jpg"));

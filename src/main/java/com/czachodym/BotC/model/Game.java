@@ -40,7 +40,7 @@ public class Game implements Serializable {
     private String notes;
     @ManyToOne
     @JoinColumn(name = "place_id")
-    Place place;
+    private Place place;
     @Column
     private String imageUrl;
     @ElementCollection

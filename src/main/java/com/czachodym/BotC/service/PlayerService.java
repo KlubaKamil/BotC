@@ -12,8 +12,10 @@ import com.czachodym.BotC.model.Achievement;
 import com.czachodym.BotC.model.Player;
 import com.czachodym.BotC.model.util.PlayerAchievement;
 import com.czachodym.BotC.service.util.DtoMapper;
+import com.czachodym.botcshared.dto.NotificationMode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,8 @@ import static com.czachodym.BotC.service.util.CommonMethods.*;
 @RequiredArgsConstructor
 @Slf4j
 public class PlayerService {
+    @Value("${frontend.url}")
+    private String FRONTEND_URL;
     private final PlayerRepository playerRepository;
     private final AchievementRepository achievementRepository;
     private final DtoMapper dtoMapper;
@@ -94,6 +98,20 @@ public class PlayerService {
         playerRepository.deleteById(id);
         boolean deleted = exists & !playerRepository.existsById(id);
         log.info("Deleted: {}", deleted);
+    }
+
+    public String getMessage(long id, NotificationMode notificationMode){
+        Player player = throwIfNotFoundById(id, playerRepository);
+        String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nowego gracza!" : "Edytowano gracza!";
+        String name = player.getName();
+        String discordName = player.getDiscordName() == null ? "-" : player.getDiscordName();
+        return """
+                %s
+                Id: %d
+                Imię: %s
+                Nick na Discordzie: %s
+                Kliknij i zobacz: %s/players/%d
+                """.formatted(modeMessage, id, name, discordName, FRONTEND_URL, id);
     }
 
     private Player buildPlayer(PlayerDto playerDto){

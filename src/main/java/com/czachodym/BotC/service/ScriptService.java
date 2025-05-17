@@ -7,11 +7,14 @@ import com.czachodym.BotC.dto.ScriptDto;
 import com.czachodym.BotC.dto.details.script.ScriptCharacterDetails;
 import com.czachodym.BotC.dto.details.script.ScriptDetails;
 import com.czachodym.BotC.dto.headers.ScriptHeader;
+import com.czachodym.BotC.model.Alignment;
 import com.czachodym.BotC.model.Character;
 import com.czachodym.BotC.model.Script;
 import com.czachodym.BotC.service.util.DtoMapper;
+import com.czachodym.botcshared.dto.NotificationMode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +27,8 @@ import static com.czachodym.BotC.service.util.CommonMethods.*;
 @RequiredArgsConstructor
 @Slf4j
 public class ScriptService {
+    @Value("${frontend.url}")
+    private String FRONTEND_URL;
     private final CharacterRepository characterRepository;
     private final ScriptRepository scriptRepository;
     private final DtoMapper dtoMapper;
@@ -91,6 +96,40 @@ public class ScriptService {
         scriptRepository.deleteById(id);
         boolean deleted = exists & !scriptRepository.existsById(id);
         log.info("Deleted: {}", deleted);
+    }
+
+    public String getMessage(long id, NotificationMode notificationMode){
+        Script script = throwIfNotFoundById(id, scriptRepository);
+        String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nowy skrypt!" : "Edytowano skrypt!";
+        String name = script.getName();
+        String author = getIfNull(script.getAuthor(), "-");
+        String notes = getIfNull(script.getNotes(), "-");
+        String townsfolks = getCharactersAsString(script.getCharacters(), Alignment.Townsfolk);
+        String outsiders = getCharactersAsString(script.getCharacters(), Alignment.Outsider);
+        String minions = getCharactersAsString(script.getCharacters(), Alignment.Minion);
+        String demons = getCharactersAsString(script.getCharacters(), Alignment.Demon);
+        return """
+                %s
+                Id: %d
+                Nazwa: %s
+                Autor: %s
+                Wskazówki: %s
+                Postacie:
+                   Townsfolkowie: %s
+                   Outsiderzy: %s
+                   Miniony: %s
+                   Demony: %s
+                Kliknij i zobacz: %s/scripts/%d
+                """.formatted(modeMessage, id, name, author, notes, townsfolks, outsiders, minions, demons,
+                    FRONTEND_URL, id);
+    }
+
+    private String getCharactersAsString(List<Character> characters, Alignment alignment){
+        List<String> filteredCharactersNames = characters.stream()
+                .filter(c -> c.getAlignment() == alignment)
+                .map(Character::getName)
+                .toList();
+        return String.join(", ", filteredCharactersNames);
     }
 
     private Script buildScript(ScriptDto scriptDto){

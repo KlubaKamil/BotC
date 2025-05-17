@@ -1,5 +1,6 @@
 package com.czachodym.BotC.service;
 
+import com.czachodym.BotC.config.Config;
 import com.czachodym.BotC.dao.AchievementRepository;
 import com.czachodym.BotC.dto.AchievementDto;
 import com.czachodym.BotC.dto.details.achievement.AchievementDetails;
@@ -7,8 +8,10 @@ import com.czachodym.BotC.dto.details.achievement.AchievementPlayerDetails;
 import com.czachodym.BotC.dto.headers.AchievementHeader;
 import com.czachodym.BotC.model.Achievement;
 import com.czachodym.BotC.service.util.DtoMapper;
+import com.czachodym.botcshared.dto.NotificationMode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +24,8 @@ import static com.czachodym.BotC.service.util.CommonMethods.throwIfNotFoundById;
 @RequiredArgsConstructor
 @Slf4j
 public class AchievementService {
+    @Value("${frontend.url}")
+    private String FRONTEND_URL;
     private final AchievementRepository achievementRepository;
     private final DtoMapper dtoMapper;
 
@@ -86,6 +91,20 @@ public class AchievementService {
         achievementRepository.deleteById(id);
         boolean deleted = exists & !achievementRepository.existsById(id);
         log.info("Deleted: {}", deleted);
+    }
+
+    public String getMessage(long id, NotificationMode notificationMode){
+        Achievement achievement = throwIfNotFoundById(id, achievementRepository);
+        String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nowe osiągnięcie!" : "Edytowano osiągnięcie!";
+        String name = achievement.getName();
+        String description = achievement.getDescription();
+        return """
+                %s
+                Id: %d
+                Name: %s
+                Opis: %s
+                Kliknij i zobacz: %s/achievements/%d
+                """.formatted(modeMessage, id, name, description, FRONTEND_URL, id);
     }
 
     private Achievement buildAchievement(AchievementDto achievementDto){

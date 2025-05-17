@@ -1,13 +1,15 @@
 package com.czachodym.BotC.controller;
 
-import com.czachodym.BotC.model.util.NotificationType;
 import com.czachodym.BotC.service.NotificationService;
+import com.czachodym.botcshared.dto.DiscordGuild;
+import com.czachodym.botcshared.dto.DiscordNotification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/notification")
@@ -16,10 +18,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class NotificationController {
     private final NotificationService notificationService;
 
-    @PostMapping("{type}/{id}")
-    public void sendDiscordNotification(@PathVariable NotificationType type, @PathVariable Long id){
-        log.info("Notification request: {}, {}", type, id);
-        notificationService.notifyDiscordService(type, id);
+    @GetMapping
+    public ResponseEntity<Map<String, List<DiscordGuild>>> getDiscordChannels(){
+        log.info("Getting discord channels.");
+        return ResponseEntity.ok(Map.of("servers", notificationService.getDiscordChannels()));
+    }
+
+    @PostMapping
+    public void sendDiscordNotification(@RequestBody DiscordNotification discordNotification){
+        log.info("Notification request: {}", discordNotification);
+        notificationService.notifyDiscordService(discordNotification);
         log.info("Notification sent.");
     }
 }

@@ -17,8 +17,13 @@ spring:
     init:
 #      data-locations: classpath:data-local.sql
       data-locations: classpath:data2-local.sql
+  kafka:
+    bootstrap-servers: localhost:9092
 
-frontend-url: "*"
+frontend:
+  cors:
+    url: "*"
+  url: http://localhost:4200
 
 jwt:
   secret: secrettttttttttttt
