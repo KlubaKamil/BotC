@@ -22,11 +22,11 @@ spring:
 
 frontend:
   cors:
-    url: "*"
+    origin: "*"
   url: http://localhost:4200
 
 jwt:
   secret: secrettttttttttttt
   token:
     validity:
-      time: 2000
+      time: 3000

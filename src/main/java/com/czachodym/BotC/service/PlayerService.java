@@ -139,7 +139,7 @@ public class PlayerService {
                     return PlayerAchievement.builder()
                             .id(padId)
                             .achievement(achievement)
-                            .date(padId == null ? LocalDate.now() : pad.date())
+                            .date(pad.date() == null ? LocalDate.now() : pad.date())
                             .build();
                 })
                 .toList();

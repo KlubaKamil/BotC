@@ -10,12 +10,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequestMapping("/character")
@@ -48,9 +48,18 @@ public class CharacterController {
         return ResponseEntity.ok(characterHeaders);
     }
 
+    @RequestMapping(path = "/{id}/image", method = {RequestMethod.PUT, RequestMethod.POST})
+    public ResponseEntity<Map<String, Long>> uploadImage2(@PathVariable Long id, @RequestParam("image") MultipartFile image) {
+        log.info("Uploading an image.");
+        boolean success = characterService.uploadImage(id, image);
+        log.info("Finished uploading an image.");
+        return success ? ResponseEntity.status(CREATED).body(Map.of("id", id)) :
+                ResponseEntity.internalServerError().build();
+    }
+
     @GetMapping("/image/{size}/{characterName}")
-    public ResponseEntity<Resource> getCharacterImage(@PathVariable String size, @PathVariable String characterName){
-        Resource resource = characterService.getCharacterImage(size, characterName);
+    public ResponseEntity<Resource> getImage(@PathVariable String size, @PathVariable String characterName){
+        Resource resource = characterService.getImage(size, characterName);
         return resource == null ?
                 ResponseEntity.notFound().build() :
                 ResponseEntity.ok()

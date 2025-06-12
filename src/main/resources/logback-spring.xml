@@ -8,9 +8,9 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/app/logs/application.log</file>
+        <file>/app/logs/botc.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <fileNamePattern>/app/logs/application.%i.log</fileNamePattern>
+            <fileNamePattern>/app/logs/botc.%i.log</fileNamePattern>
             <minIndex>1</minIndex>
             <maxIndex>5</maxIndex>
         </rollingPolicy>

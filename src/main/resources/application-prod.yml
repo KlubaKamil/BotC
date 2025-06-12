@@ -17,8 +17,8 @@ spring:
 
 frontend:
   cors:
-    url: ${FRONTEND_URL}
-  url: https://www.grimlog.pl
+    origin: ${FRONTEND_CORS_ORIGIN}
+  url: ${FRONTEND_URL}
 
 jwt:
   secret: ${JWT_SECRET}

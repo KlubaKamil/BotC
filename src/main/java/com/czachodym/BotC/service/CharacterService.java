@@ -11,15 +11,20 @@ import com.czachodym.BotC.service.util.DtoMapper;
 import com.czachodym.botcshared.dto.NotificationMode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import static com.czachodym.BotC.service.util.CommonMethods.*;
@@ -61,16 +66,6 @@ public class CharacterService {
         log.info("Headers found.");
         return characterHeaders;
     }
-
-    public Resource getCharacterImage(String size, String characterName){
-        Path filePath = root.resolve(Paths.get(size + "/" + characterName + ".png"));
-        try {
-            return new UrlResource(filePath.toUri());
-        } catch (MalformedURLException e) {
-            return null;
-        }
-    }
-
     public long createCharacter(CharacterDto characterDto){
         String name = characterDto.name();
         log.info("Checking if character exists.");
@@ -96,7 +91,11 @@ public class CharacterService {
         Character updatedCharacter = buildCharacter(characterDto, character);
         characterRepository.save(updatedCharacter);
         log.info("Character updated. Id: {}", id);
-
+        boolean hasImage = characterDto.imageUploaded();
+        if(!hasImage){
+            log.info("Trying to delete image.");
+            deleteImage(characterDto.name());
+        }
         return id;
     }
 
@@ -107,6 +106,52 @@ public class CharacterService {
         characterRepository.deleteById(id);
         boolean deleted = exists & !characterRepository.existsById(id);
         log.info("Deleted: {}", deleted);
+    }
+
+    public boolean uploadImage(long id, MultipartFile image) {
+        try{
+            log.info("Checking if character exists.");
+            Character character = throwIfNotFoundById(id, characterRepository);
+            log.info("Character found, saving.");
+            String filename = character.getName() + ".png";
+            Path filePath = root.resolve("orig/" + filename);
+            Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            Thumbnails.of(image.getInputStream())
+                    .size(100, 100)
+                    .toFile(root.resolve("100/" + filename).toFile());
+            Thumbnails.of(image.getInputStream())
+                    .size(30, 30)
+                    .toFile(root.resolve("30/" + filename).toFile());
+            character.setImageUploaded(true);
+            characterRepository.save(character);
+            log.info("Image saved.");
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    public Resource getImage(String size, String characterName){
+        Path filePath = root.resolve(Paths.get(size + "/" + characterName + ".png"));
+        try {
+            return new UrlResource(filePath.toUri());
+        } catch (MalformedURLException e) {
+            return null;
+        }
+    }
+
+    private void deleteImage(String characterName) {
+        Path filePathOrig = root.resolve(Paths.get("orig/" + characterName + ".png"));
+        Path filePath100 = root.resolve(Paths.get("100/" + characterName + ".png"));
+        Path filePath30 = root.resolve(Paths.get("30/" + characterName + ".png"));
+        try {
+            Files.delete(filePathOrig);
+            Files.delete(filePath100);
+            Files.delete(filePath30);
+            log.info("Image deleted.");
+        } catch (IOException e) {
+            log.info("No image found.");
+        }
     }
 
     public String getMessage(long id, NotificationMode notificationMode){
@@ -150,6 +195,7 @@ public class CharacterService {
                 .description(characterDto.description())
                 .linkToWiki(characterDto.linkToWiki())
                 .tips(characterDto.tips())
+                .imageUploaded(characterDto.imageUploaded())
                 .build();
     }
 }

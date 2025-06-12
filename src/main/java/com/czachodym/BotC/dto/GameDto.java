@@ -19,6 +19,6 @@ public record GameDto (
         LocalDate date,
         String notes,
         PlaceDto place,
-        String imageUrl,
+        boolean imageUploaded,
         List<Integer> balanceMarks
 ){}

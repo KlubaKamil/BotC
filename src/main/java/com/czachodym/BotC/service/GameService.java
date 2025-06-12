@@ -95,8 +95,8 @@ public class GameService {
         log.info("Updating a game.");
         gameRepository.save(updatedGame);
         log.info("Game updated. Id: {}", id);
-        String imageUrl = gameDto.imageUrl();
-        if(imageUrl == null){
+        boolean hasImage = gameDto.imageUploaded();
+        if(!hasImage){
             log.info("Trying to delete image.");
             deleteImage(gameDto.id());
         }
@@ -112,7 +112,7 @@ public class GameService {
         log.info("Deleted: {}", deleted);
     }
 
-    public String uploadImage(long id, MultipartFile image) {
+    public boolean uploadImage(long id, MultipartFile image) {
         try{
             log.info("Checking if game exists.");
             Game game = throwIfNotFoundById(id, gameRepository);
@@ -120,22 +120,16 @@ public class GameService {
             String filename = "game_" + id + ".jpg";
             Path filePath = root.resolve(filename);
             Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            String url = "game/" + id + "/image";
-            game.setImageUrl(url);
+            game.setImageUploaded(true);
             gameRepository.save(game);
             log.info("Image saved.");
-            return url;
+            return true;
         } catch (IOException e) {
-            return null;
+            return false;
         }
     }
 
     public Resource getImage(long id){
-        Game game = throwIfNotFoundById(id, gameRepository);
-        if (game.getImageUrl() == null) {
-            return null;
-        }
-
         Path filePath = root.resolve(Paths.get("game_" + id + ".jpg"));
         try {
             return new UrlResource(filePath.toUri());
@@ -271,7 +265,7 @@ public class GameService {
                 .date(gameDto.date())
                 .notes(gameDto.notes())
                 .place(place)
-                .imageUrl(gameDto.imageUrl())
+                .imageUploaded(gameDto.imageUploaded())
                 .balanceMarks(gameDto.balanceMarks())
                 .build();
     }

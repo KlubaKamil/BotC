@@ -29,8 +29,8 @@ import java.util.Map;
 public class JwtRequestFilter extends OncePerRequestFilter {
     private final UserService userService;
     private final JwtTokenUtil jwtTokenUtil;
-    @Value("${frontend.cors.url}")
-    private String frontendUrl;
+    @Value("${frontend.cors.origin}")
+    private String allowedOrigin;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -51,7 +51,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     log.info("JWT Token has expired");
                 } catch (SignatureException e){
                     log.info("JWT contains unknown signature.");
-                    response.setHeader("Access-Control-Allow-Origin", frontendUrl);
+                    response.setHeader("Access-Control-Allow-Origin", allowedOrigin);
                     Map<String, String> error = new HashMap<>();
                     error.put("message", "JWT contains unknown signature.");
                     response.setContentType("application/json");

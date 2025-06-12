@@ -20,5 +20,6 @@ public record CharacterDto(
         String description,
         String linkToWiki,
         String tips,
+        boolean imageUploaded,
         CharacterDetails characterDetails
 ){}

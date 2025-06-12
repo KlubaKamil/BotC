@@ -56,6 +56,7 @@ public class DtoMapper {
                 .description(character.getDescription())
                 .linkToWiki(character.getLinkToWiki())
                 .tips(character.getTips())
+                .imageUploaded(character.isImageUploaded())
                 .characterDetails(characterDetails)
                 .build();
     }
@@ -77,7 +78,7 @@ public class DtoMapper {
                 .date(game.getDate())
                 .notes(game.getNotes())
                 .place(mapPlace(game.getPlace()))
-                .imageUrl(game.getImageUrl())
+                .imageUploaded(game.isImageUploaded())
                 .balanceMarks(game.getBalanceMarks())
                 .build();
     }

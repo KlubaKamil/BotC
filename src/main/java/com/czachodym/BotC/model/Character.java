@@ -29,4 +29,6 @@ public class Character extends BotCEntity implements Serializable {
     private String linkToWiki;
     @Lob
     private String tips;
+    @Column
+    boolean imageUploaded;
 }

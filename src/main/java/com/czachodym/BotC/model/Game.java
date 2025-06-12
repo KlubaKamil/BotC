@@ -42,7 +42,7 @@ public class Game implements Serializable {
     @JoinColumn(name = "place_id")
     private Place place;
     @Column
-    private String imageUrl;
+    private boolean imageUploaded;
     @ElementCollection
     @CollectionTable(name = "balance_marks", joinColumns = @JoinColumn(name = "id"))
     @Column(name = "number")

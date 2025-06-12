@@ -6,7 +6,7 @@ import java.util.List;
 
 @Builder(toBuilder = true)
 public record AchievementDetails (
-        long accomplishmentNumber,
+        Long accomplishmentNumber,
         List<AchievementPlayerDetails> achievementPlayerDetails
 ){
     public AchievementDetails(long accomplishmentNumber) {

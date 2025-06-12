@@ -23,8 +23,6 @@ import static org.springframework.http.HttpStatus.*;
 public class GameController {
     private final GameService gameService;
 
-
-
     @GetMapping("/{id}")
     public ResponseEntity<GameDto> getGame(@PathVariable long id){
         log.info("Getting a game: {}", id);
@@ -73,21 +71,13 @@ public class GameController {
         log.info("Finished deleting a game");
     }
 
-    @PostMapping("/{id}/image")
-    public ResponseEntity<Map<String, Long>> uploadImage(@PathVariable Long id, @RequestParam("image") MultipartFile image) {
-        log.info("Uploading an image.");
-        String url = gameService.uploadImage(id, image);
-        log.info("Finished uploading an image.");
-        return ResponseEntity.status(OK).body(Map.of("id", id));
-    }
-
-    @PutMapping("/{id}/image")
+    @RequestMapping(path = "/{id}/image", method = {RequestMethod.PUT, RequestMethod.POST})
     public ResponseEntity<Map<String, Long>> uploadImage2(@PathVariable Long id, @RequestParam("image") MultipartFile image) {
         log.info("Uploading an image.");
-        String url = gameService.uploadImage(id, image);
+        boolean success = gameService.uploadImage(id, image);
         log.info("Finished uploading an image.");
-        return url == null ? ResponseEntity.internalServerError().build() :
-                ResponseEntity.status(CREATED).body(Map.of("id", id));
+        return success ? ResponseEntity.status(CREATED).body(Map.of("id", id)) :
+                ResponseEntity.internalServerError().build();
     }
 
     @GetMapping("/{id}/image")

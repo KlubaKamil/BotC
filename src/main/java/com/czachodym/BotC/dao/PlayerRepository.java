@@ -18,7 +18,9 @@ public interface PlayerRepository extends NameJpaRepository<Player, Long> {
                 p.id,
                 p.name,
                 p.discordName,
-                COUNT(a.id),
+                COUNT(DISTINCT gs.id),
+                COUNT(DISTINCT a.id),
+                COUNT(DISTINCT CASE WHEN gs.goodWon = true THEN gs.id ELSE NULL END),
                 COUNT(DISTINCT CASE WHEN a.good = true THEN g.id ELSE NULL END), 
                 COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
             ) 
@@ -29,13 +31,15 @@ public interface PlayerRepository extends NameJpaRepository<Player, Long> {
                 JOIN g2.assignments a2 
                 WHERE a2.id = a.id
             )
+            LEFT JOIN Game gs on gs.storyteller = p
             GROUP BY p.id, p.name
         """)
     List<PlayerHeader> findAllPlayerHeaders();
 
     @Query("""
             SELECT new com.czachodym.BotC.dto.details.player.PlayerDetails(
-                COUNT(g.id),
+                COUNT(DISTINCT gs.id),
+                COUNT(DISTINCT g.id),
                 COUNT(DISTINCT CASE WHEN a.good = true THEN g.id ELSE NULL END),
                 COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
             )
@@ -46,6 +50,7 @@ public interface PlayerRepository extends NameJpaRepository<Player, Long> {
                 JOIN g2.assignments a2 
                 WHERE a2.id = a.id
             )
+            LEFT JOIN Game gs on gs.storyteller = p
             WHERE p.id = :id
             """)
     PlayerDetails findPlayerDetails(long id);
