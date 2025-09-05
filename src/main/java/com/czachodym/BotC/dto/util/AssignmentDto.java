@@ -6,6 +6,7 @@ import com.czachodym.BotC.dto.PlayerDto;
 import lombok.Builder;
 
 import java.util.List;
+import java.util.Set;
 
 @Builder
 public record AssignmentDto(

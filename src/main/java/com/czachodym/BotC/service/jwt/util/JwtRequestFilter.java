@@ -35,33 +35,28 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        final String requestUri = request.getRequestURI();
         final String requestTokenHeader = request.getHeader("Authorization");
         String username = null;
         String jwtToken = null;
 
-        if(!(requestUri.startsWith("/user") || request.getMethod().equals("GET") || request.getMethod().equals("OPTIONS"))){
-            if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
-                jwtToken = requestTokenHeader.substring(7);
-                try {
-                    username = jwtTokenUtil.getUsernameFromToken(jwtToken);
-                } catch (IllegalArgumentException e) {
-                    log.info("Unable to get JWT Token");
-                } catch (ExpiredJwtException e) {
-                    log.info("JWT Token has expired");
-                } catch (SignatureException e){
-                    log.info("JWT contains unknown signature.");
-                    response.setHeader("Access-Control-Allow-Origin", allowedOrigin);
-                    Map<String, String> error = new HashMap<>();
-                    error.put("message", "JWT contains unknown signature.");
-                    response.setContentType("application/json");
-                    response.setCharacterEncoding("UTF-8");
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write(new ObjectMapper().writeValueAsString(error));
-                    return;
-                }
-            } else {
-                log.warn("JWT Token does not begin with Bearer String");
+        if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
+            jwtToken = requestTokenHeader.substring(7);
+            try {
+                username = jwtTokenUtil.getUsernameFromToken(jwtToken);
+            } catch (IllegalArgumentException e) {
+                log.info("Unable to get JWT Token");
+            } catch (ExpiredJwtException e) {
+                log.info("JWT Token has expired");
+            } catch (SignatureException e){
+                log.info("JWT contains unknown signature.");
+                response.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "JWT contains unknown signature.");
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write(new ObjectMapper().writeValueAsString(error));
+                return;
             }
         }
 

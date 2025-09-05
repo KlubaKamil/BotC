@@ -2,15 +2,17 @@ package com.czachodym.BotC.service;
 
 import com.czachodym.BotC.dao.CharacterRepository;
 import com.czachodym.BotC.dao.ScriptRepository;
-import com.czachodym.BotC.dto.CharacterDto;
 import com.czachodym.BotC.dto.ScriptDto;
 import com.czachodym.BotC.dto.details.script.ScriptCharacterDetails;
 import com.czachodym.BotC.dto.details.script.ScriptDetails;
 import com.czachodym.BotC.dto.headers.ScriptHeader;
 import com.czachodym.BotC.model.Alignment;
 import com.czachodym.BotC.model.Character;
+import com.czachodym.BotC.model.Group;
 import com.czachodym.BotC.model.Script;
+import com.czachodym.BotC.model.util.ScriptCharacter;
 import com.czachodym.BotC.service.util.DtoMapper;
+import com.czachodym.BotC.service.util.Validators;
 import com.czachodym.botcshared.dto.NotificationMode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,10 +20,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
-import static com.czachodym.BotC.service.util.CommonMethods.*;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -32,10 +34,11 @@ public class ScriptService {
     private final CharacterRepository characterRepository;
     private final ScriptRepository scriptRepository;
     private final DtoMapper dtoMapper;
+    private final Validators validators;
 
-    public ScriptDto getScript(long id){
+    public ScriptDto getScript(long id, long groupId){
         log.info("Checking if script exists.");
-        Script script = throwIfNotFoundById(id, scriptRepository);
+        Script script = validators.throwIfNotFoundByIdAndGroupId(id, groupId, scriptRepository);
         log.info("Script found, getting details.");
         ScriptDetails scriptDetails = scriptRepository.findScriptDetailsById(id).orElseThrow();
         List<ScriptCharacterDetails> scriptCharacterDetails = scriptRepository.findScriptCharacterDetailsByScriptId(id);
@@ -46,25 +49,25 @@ public class ScriptService {
         return dtoMapper.mapScript(script, scriptDetails);
     }
 
-    public List<ScriptDto> getAllScripts(){
+    public List<ScriptDto> getAllScripts(long groupId){
         log.info("Getting all scripts");
-        List<Script> scripts = scriptRepository.findAll();
+        List<Script> scripts = scriptRepository.findByGroups_Id(groupId);
         log.info("Scripts found.");
         return dtoMapper.mapScriptList(scripts);
     }
 
-    public List<ScriptHeader> getAllScriptHeaders(){
+    public List<ScriptHeader> getAllScriptHeaders(long groupId){
         log.info("Getting all script headers");
-        List<ScriptHeader> scriptHeaders = scriptRepository.findAllScriptHeaders();
+        List<ScriptHeader> scriptHeaders = scriptRepository.findAllScriptHeaders(groupId);
         log.info("Headers found.");
         return scriptHeaders;
     }
 
-    public long createScript(ScriptDto scriptDto){
+    public long createScript(long groupId, ScriptDto scriptDto){
         String name = scriptDto.name();
         log.info("Checking if script exists.");
-        throwIfExistsByName(name, scriptRepository);
-        Script script = buildScript(scriptDto);
+        validators.throwIfExistsByName(name, scriptRepository);
+        Script script = buildScript(groupId, scriptDto);
         log.info("Saving a new script.");
         Script savedScript = scriptRepository.save(script);
         long id = savedScript.getId();
@@ -73,16 +76,16 @@ public class ScriptService {
         return id;
     }
 
-    public long editScript(ScriptDto scriptDto){
+    public long editScript(long groupId, ScriptDto scriptDto){
         long id = scriptDto.id();
         String name = scriptDto.name();
         log.info("Checking if script exists.");
-        Script script = throwIfNotFoundById(id, scriptRepository);
+        Script script = validators.throwIfNotFoundByIdAndGroupId(id, groupId, scriptRepository);
         if(!script.getName().equals(scriptDto.name())) {
-            throwIfExistsByName(name, scriptRepository);
+            validators.throwIfExistsByName(name, scriptRepository);
         }
         log.info("Script found, updating.");
-        Script updatedScript = buildScript(scriptDto, script);
+        Script updatedScript = buildScript(groupId, scriptDto, script);
         scriptRepository.save(updatedScript);
         log.info("Script updated. Id: {}", updatedScript);
 
@@ -90,7 +93,7 @@ public class ScriptService {
     }
 
     @Transactional
-    public void deleteScript(long id){
+    public void deleteScript(long id, long groupId){
         log.info("Deleting a script: {}", id);
         boolean exists = scriptRepository.existsById(id);
         scriptRepository.deleteById(id);
@@ -99,15 +102,15 @@ public class ScriptService {
     }
 
     public String getMessage(long id, NotificationMode notificationMode){
-        Script script = throwIfNotFoundById(id, scriptRepository);
+        Script script = validators.throwIfNotFoundByIdAndGroupId(id, 0, scriptRepository);
         String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nowy skrypt!" : "Edytowano skrypt!";
         String name = script.getName();
-        String author = getIfNull(script.getAuthor(), "-");
-        String notes = getIfNull(script.getNotes(), "-");
-        String townsfolks = getCharactersAsString(script.getCharacters(), Alignment.Townsfolk);
-        String outsiders = getCharactersAsString(script.getCharacters(), Alignment.Outsider);
-        String minions = getCharactersAsString(script.getCharacters(), Alignment.Minion);
-        String demons = getCharactersAsString(script.getCharacters(), Alignment.Demon);
+        String author = validators.getIfNotNull(script.getAuthor(), "-");
+        String notes = validators.getIfNotNull(script.getNotes(), "-");
+        String townsfolks = getCharactersAsString(script.getScriptCharacters(), Alignment.Townsfolk);
+        String outsiders = getCharactersAsString(script.getScriptCharacters(), Alignment.Outsider);
+        String minions = getCharactersAsString(script.getScriptCharacters(), Alignment.Minion);
+        String demons = getCharactersAsString(script.getScriptCharacters(), Alignment.Demon);
         return """
                 %s
                 Id: %d
@@ -124,40 +127,49 @@ public class ScriptService {
                     FRONTEND_URL, id);
     }
 
-    private String getCharactersAsString(List<Character> characters, Alignment alignment){
-        List<String> filteredCharactersNames = characters.stream()
-                .filter(c -> c.getAlignment() == alignment)
-                .map(Character::getName)
+    private String getCharactersAsString(List<ScriptCharacter> scriptCharacters, Alignment alignment){
+        List<String> filteredCharactersNames = scriptCharacters.stream()
+                .filter(c -> c.getCharacter().getAlignment() == alignment)
+                .map(c -> c.getCharacter().getName())
                 .toList();
         return String.join(", ", filteredCharactersNames);
     }
 
-    private Script buildScript(ScriptDto scriptDto){
-        return buildScript(scriptDto, Script.builder());
+    private Script buildScript(long groupId, ScriptDto scriptDto){
+        return buildScript(groupId, scriptDto, new Script());
     }
 
-    private Script buildScript(ScriptDto scriptDto, Script script){
-        Script.ScriptBuilder<?,?> scriptBuilder = script.toBuilder()
-                .id(script.getId());
-        return buildScript(scriptDto, scriptBuilder);
-    }
-
-    private Script buildScript(ScriptDto scriptDto, Script.ScriptBuilder<?,?> builder){
+    private Script buildScript(long groupId, ScriptDto scriptDto, Script script){
         log.info("Validating a scriptDto");
-        List<Long> characterIds = scriptDto.characters().stream()
-                .map(CharacterDto::id)
+
+        log.info("Checking if groupId available: {}", groupId);
+        Group group = validators.throwIfGroupNotAvailableMod(groupId);
+        Set<Group> groups = script.getGroups();
+        groups.add(group);
+
+        log.info("Group available,. looking for characters");
+        List<Long> characterIds = scriptDto.scriptCharacters().stream()
+                .map(sc -> sc.character().id())
                 .toList();
-        log.info("Script not found, looking for scriptAssignments: {}", characterIds);
-        List<Character> characters = findEntitiesById(characterIds, characterRepository)
+        List<Character> characters = validators.throwIfEntitiesNotExist(characterIds, groupId, characterRepository)
                 .stream().sorted(Comparator.comparingLong(c -> characterIds.indexOf(c.getId())))
                 .toList();
-        log.info("Characters found, validation successful. Building a script.");
+        List<ScriptCharacter> scriptCharacters = new ArrayList<>(characters.size());
+        for(int i = 0; i < characters.size(); i++){
+            scriptCharacters.add(ScriptCharacter.builder()
+                    .character(characters.get(i))
+                    .characterOrder(i)
+                    .build());
+        }
+        log.info("Characters found.");
 
-        return builder
+        log.info("Validation successful. Building a script.");
+        return script.toBuilder()
+                .groups(groups)
                 .name(scriptDto.name())
                 .author(scriptDto.author())
                 .notes(scriptDto.notes())
-                .characters(characters)
+                .scriptCharacters(scriptCharacters)
                 .build();
     }
 }

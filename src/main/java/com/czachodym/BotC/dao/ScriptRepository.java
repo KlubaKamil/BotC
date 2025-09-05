@@ -1,6 +1,6 @@
 package com.czachodym.BotC.dao;
 
-import com.czachodym.BotC.dao.util.NameJpaRepository;
+import com.czachodym.BotC.dao.util.BotCNameJpaRepository;
 import com.czachodym.BotC.dto.details.script.ScriptCharacterDetails;
 import com.czachodym.BotC.dto.details.script.ScriptDetails;
 import com.czachodym.BotC.dto.headers.ScriptHeader;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ScriptRepository extends NameJpaRepository<Script, Long> {
+public interface ScriptRepository extends BotCNameJpaRepository<Script, Long> {
     Optional<Script> findByName(String name);
 
     @Query("""
@@ -22,9 +22,11 @@ public interface ScriptRepository extends NameJpaRepository<Script, Long> {
                 COUNT(g.id))
             FROM Script s
             LEFT JOIN Game g on s = g.script
+            JOIN s.groups gr
+            WHERE gr.id = :groupId
             GROUP BY s.id, s.name
         """)
-    List<ScriptHeader> findAllScriptHeaders();
+    List<ScriptHeader> findAllScriptHeaders(long groupId);
 
     @Query("""
             SELECT new com.czachodym.BotC.dto.details.script.ScriptDetails(

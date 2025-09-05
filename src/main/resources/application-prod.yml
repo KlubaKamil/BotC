@@ -25,3 +25,7 @@ jwt:
   token:
     validity:
       time: 2592000
+
+discord:
+  clientId:
+  secret:

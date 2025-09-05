@@ -1,6 +1,6 @@
 package com.czachodym.BotC.model;
 
-import com.czachodym.BotC.model.util.BotCEntity;
+import com.czachodym.BotC.model.util.BotCNameEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,7 +17,7 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @NoArgsConstructor
-public class Character extends BotCEntity implements Serializable {
+public class Character extends BotCNameEntity implements Serializable {
     @Column
     private int maxStartNumber;
     @Column

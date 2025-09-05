@@ -1,7 +1,7 @@
 package com.czachodym.BotC.dto.details.player;
 
 public record PlayerCharacterDetails(
-        long id,
+        long characterId,
         String characterName,
         long gamesNumber,
         long wonGamesNumber,

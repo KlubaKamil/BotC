@@ -26,7 +26,14 @@ frontend:
   url: http://localhost:4200
 
 jwt:
-  secret: secrettttttttttttt
+  secret: secrettttttttttttttttttttttttttttttttttttttttt
   token:
     validity:
       time: 3000
+
+discord:
+  clientId: 1369101839831797811
+  secret: 1Cwhsc-i3oHJmu-h7cYO_ys1-ronC9WS
+  token-url: https://discord.com/api/oauth2/token
+  user-url: https://discord.com/api/users/@me
+  redirect-uri: http://localhost:4200/welcome

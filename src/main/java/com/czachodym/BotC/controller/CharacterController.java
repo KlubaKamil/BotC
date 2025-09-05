@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,48 +19,63 @@ import java.util.Map;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@RequestMapping("/character")
+@RequestMapping("/character/{groupId}")
 @RequiredArgsConstructor
 @Slf4j
 public class CharacterController {
     private final CharacterService characterService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<CharacterDto> getCharacter(@PathVariable long id){
-        log.info("Getting a character: {}", id);
-        CharacterDto characterDto = characterService.getCharacter(id);
+    public ResponseEntity<CharacterDto> getCharacter(@PathVariable long id, @PathVariable long groupId){
+        log.info("Getting a character, id: {}, groupId: {}", id, groupId);
+        CharacterDto characterDto = characterService.getCharacter(id, groupId);
         log.info("Finished getting a character");
         return ResponseEntity.ok(characterDto);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<CharacterDto>> getAllCharacters(){
-        log.info("Getting all characters.");
-        List<CharacterDto> characterDtos = characterService.getAllCharacters();
+    public ResponseEntity<List<CharacterDto>> getAllCharacters(@PathVariable long groupId){
+        log.info("Getting all characters for groupId: {}.", groupId);
+        List<CharacterDto> characterDtos = characterService.getAllCharacters(groupId);
         log.info("Finished getting all characters");
         return ResponseEntity.ok(characterDtos);
     }
 
     @GetMapping("/headers")
-    public ResponseEntity<List<CharacterHeader>> getAllCharacterHeaders(){
-        log.info("Getting all character headers.");
-        List<CharacterHeader> characterHeaders = characterService.getAllCharacterHeaders();
+    public ResponseEntity<List<CharacterHeader>> getAllCharacterHeaders(@PathVariable long groupId){
+        log.info("Getting all character headers for groupId: {}.", groupId);
+        List<CharacterHeader> characterHeaders = characterService.getAllCharacterHeaders(groupId);
         log.info("Finished getting all character headers");
         return ResponseEntity.ok(characterHeaders);
     }
 
-    @RequestMapping(path = "/{id}/image", method = {RequestMethod.PUT, RequestMethod.POST})
-    public ResponseEntity<Map<String, Long>> uploadImage2(@PathVariable Long id, @RequestParam("image") MultipartFile image) {
-        log.info("Uploading an image.");
-        boolean success = characterService.uploadImage(id, image);
-        log.info("Finished uploading an image.");
-        return success ? ResponseEntity.status(CREATED).body(Map.of("id", id)) :
-                ResponseEntity.internalServerError().build();
+    @PutMapping
+    public ResponseEntity<Map<String, Long>> addCharacter(@PathVariable long groupId, @Valid @RequestBody CharacterDto characterDto){
+        log.info("Creating new character, groupId: {}, dto: {}", groupId, characterDto);
+        long id = characterService.createCharacter(groupId, characterDto);
+        log.info("Finished creating new character.");
+        return ResponseEntity.status(CREATED).body(Map.of("id", id));
     }
 
-    @GetMapping("/image/{size}/{characterName}")
-    public ResponseEntity<Resource> getImage(@PathVariable String size, @PathVariable String characterName){
-        Resource resource = characterService.getImage(size, characterName);
+    @PostMapping
+    public ResponseEntity<Map<String, Long>> editCharacter(@PathVariable long groupId, @Valid @RequestBody CharacterDto characterDto){
+        log.info("Editing an existing character: groupId: {}, dto: {}", groupId, characterDto);
+        long id = characterService.editCharacter(groupId, characterDto);
+        log.info("Finished editing an existing character.");
+        return ResponseEntity.ok(Map.of("id", id));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(NO_CONTENT)
+    public void deleteCharacter(@PathVariable long id, @PathVariable long groupId){
+        log.info("Deleting a character: id: {}, groupId: {}", id, groupId);
+        characterService.deleteCharacter(id, groupId);
+        log.info("Finished deleting a character");
+    }
+
+    @GetMapping("/image/{size}/{characterId}")
+    public ResponseEntity<Resource> getImage(@PathVariable long groupId, @PathVariable String size, @PathVariable long characterId){
+        Resource resource = characterService.getImage(groupId, size, characterId);
         return resource == null ?
                 ResponseEntity.notFound().build() :
                 ResponseEntity.ok()
@@ -67,27 +83,21 @@ public class CharacterController {
                         .body(resource);
     }
 
-    @PutMapping
-    public ResponseEntity<Map<String, Long>> addCharacter(@Valid @RequestBody CharacterDto characterDto){
-        log.info("Creating new character: {}", characterDto);
-        long id = characterService.createCharacter(characterDto);
-        log.info("Finished creating new character.");
-        return ResponseEntity.status(CREATED).body(Map.of("id", id));
+    @PostMapping(path = "/{id}/image")
+    private ResponseEntity<Map<String, Long>> uploadImagePost(@PathVariable long id, @PathVariable long groupId, @RequestParam("image") MultipartFile image) {
+        return uploadImage(id, groupId, image, OK);
     }
 
-    @PostMapping
-    public ResponseEntity<Map<String, Long>> editCharacter(@Valid @RequestBody CharacterDto characterDto){
-        log.info("Editing an existing character: {}", characterDto);
-        long id = characterService.editCharacter(characterDto);
-        log.info("Finished editing an existing character.");
-        return ResponseEntity.ok(Map.of("id", id));
+    @PutMapping(path = "/{id}/image")
+    private ResponseEntity<Map<String, Long>> uploadImagePut(@PathVariable long id, @PathVariable long groupId, @RequestParam("image") MultipartFile image){
+        return uploadImage(id, groupId, image, CREATED);
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(NO_CONTENT)
-    public void deleteCharacter(@PathVariable("id") long id){
-        log.info("Deleting a character: {}", id);
-        characterService.deleteCharacter(id);
-        log.info("Finished deleting a character");
+    private ResponseEntity<Map<String, Long>> uploadImage(long id, long groupId, MultipartFile image, HttpStatus returnStatus) {
+        log.info("Uploading an image, id: {}, groupId: {}", id, groupId);
+        boolean success = characterService.uploadImage(id, groupId, image);
+        log.info("Finished uploading an image.");
+        return success ? ResponseEntity.status(returnStatus).body(Map.of("id", id)) :
+                ResponseEntity.internalServerError().build();
     }
 }
