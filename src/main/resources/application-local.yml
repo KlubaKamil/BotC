@@ -37,3 +37,4 @@ discord:
   token-url: https://discord.com/api/oauth2/token
   user-url: https://discord.com/api/users/@me
   redirect-uri: http://localhost:4200/welcome
+#  redirect-uri: http://83.10.241.97:44444/welcome

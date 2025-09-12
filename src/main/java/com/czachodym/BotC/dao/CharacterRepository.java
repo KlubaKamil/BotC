@@ -13,8 +13,6 @@ import java.util.Optional;
 
 @Repository
 public interface CharacterRepository extends BotCNameJpaRepository<Character, Long> {
-    boolean existsByName(String name);
-
     @Query("""
             SELECT new com.czachodym.BotC.dto.headers.CharacterHeader(
                 c.id,

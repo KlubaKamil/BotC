@@ -16,33 +16,35 @@ import java.sql.SQLIntegrityConstraintViolationException;
 @ControllerAdvice
 public class DefaultExceptionHandler {
 
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<?> entityNotFoundHandler(Exception exception, WebRequest request){
+    @ExceptionHandler({EntityNotFoundException.class, UnexpectedTypeException.class})
+    public ResponseEntity<?> badRequestExceptionsHandler(Exception exception, WebRequest request){
         log.info("{}", exception.getMessage());
-        return new ResponseEntity<>("Bad request", new HttpHeaders(), HttpStatus.BAD_REQUEST);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .build();
     }
 
-    @ExceptionHandler(EntityAlreadyExistsException.class)
-    public ResponseEntity<?> entityAlreadyExistsHandler(Exception exception, WebRequest request){
+    @ExceptionHandler({EntityAlreadyExistsException.class, UserAlreadyPresentException.class})
+    public ResponseEntity<?> conflictExceptionsHandler(Exception exception, WebRequest request){
         log.info("{}", exception.getMessage());
-        return new ResponseEntity<>("Conflict", new HttpHeaders(), HttpStatus.CONFLICT);
-    }
-
-    @ExceptionHandler(UnexpectedTypeException.class)
-    public ResponseEntity<?> unexpectedTypeHandler(Exception exception, WebRequest request){
-        log.info("{}", exception.getMessage());
-        return new ResponseEntity<>("Bad request", new HttpHeaders(), HttpStatus.BAD_REQUEST);
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(exception.getMessage());
     }
 
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
     public ResponseEntity<?> SQLIntegrityConstraintViolationExceptionHandler(Exception exception, WebRequest request){
         log.info("{}", exception.getMessage());
-        return new ResponseEntity<>("Precondition required", new HttpHeaders(), HttpStatus.PRECONDITION_REQUIRED);
+        return ResponseEntity
+                .status(HttpStatus.PRECONDITION_REQUIRED)
+                .build();
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<?> badCredentialsExceptionHandler(Exception exception, WebRequest request){
         log.info("{}", exception.getMessage());
-        return new ResponseEntity<>("Wrong credentials", new HttpHeaders(), HttpStatus.FORBIDDEN);
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .build();
     }
 }

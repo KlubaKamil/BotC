@@ -29,7 +29,7 @@ public class BotCApplication {
 //				// Split by "),"
 //				String[] tuples = line.split("\\),");
 //
-//				int id = 1;
+//				int id = 73;
 //				int lastScript = 0;
 //				int order = 1;
 //
@@ -47,11 +47,12 @@ public class BotCApplication {
 //						}
 //
 //						//script_script_characters
-////						System.out.print("(" + script_id + ", " + id + "), ");
+//						long scriptCharactersId = id;
+////						System.out.print("(" + script_id + ", " + scriptCharactersId + "), ");
 //
 //						//script_character
 //						System.out.print("(" + id + ", " + order + ", " + character_id + "), ");
-//
+////						System.out.println("(" + script_id + ", " + scriptCharactersId + "), " + "(" + id + ", " + order + ", " + character_id + "), ");
 //						id += 1;
 //						order += 1;
 //						lastScript = script_id;

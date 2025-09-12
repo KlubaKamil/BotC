@@ -67,7 +67,7 @@ public class PlayerService {
     public long createPlayer(long groupId, PlayerDto playerDto){
         String name = playerDto.name();
         log.info("Checking if player exists.");
-        validators.throwIfExistsByName(name, playerRepository);
+        validators.throwIfExistsByNameAndGroupId(groupId, name, playerRepository);
         Player player = buildPlayer(groupId, playerDto);
         log.info("Saving new player.");
         Player savedPlayer = playerRepository.save(player);
@@ -83,7 +83,7 @@ public class PlayerService {
         log.info("Checking if player exists.");
         Player player = validators.throwIfNotFoundByIdAndGroupId(id, groupId, playerRepository);
         if(!player.getName().equals(playerDto.name())) {
-            validators.throwIfExistsByName(name, playerRepository);
+            validators.throwIfExistsByNameAndGroupId(groupId, name, playerRepository);
         }
         log.info("Player found, updating.");
         Player savedPlayer = buildPlayer(groupId, playerDto, player);
@@ -96,9 +96,14 @@ public class PlayerService {
     @Transactional
     public void deletePlayer(long id, long groupId){
         log.info("Deleting a player.");
-        boolean exists = playerRepository.existsById(id);
+
+        log.info("Checking if group available: {}.", groupId);
+        validators.throwIfGroupNotAvailableMod(groupId);
+        log.info("Checking if player exists: {}.", id);
+        validators.throwIfNotFoundByIdAndGroupId(id, groupId, playerRepository);
         playerRepository.deleteById(id);
-        boolean deleted = exists & !playerRepository.existsById(id);
+        boolean deleted = playerRepository.existsById(id);
+
         log.info("Deleted: {}", deleted);
     }
 
@@ -133,7 +138,7 @@ public class PlayerService {
         List<Long> achievementIds = playerAchievementDtos.stream()
                 .map(a -> a.achievement().id())
                 .toList();
-        List<Achievement> achievements = validators.throwIfEntitiesNotExist(achievementIds, groupId, achievementRepository);
+        List<Achievement> achievements = validators.throwIfEntitiesNotExistByGroupId(achievementIds, groupId, achievementRepository);
         List<PlayerAchievement> playerAchievements = playerAchievementDtos.stream()
                 .map(pad -> {
                     Long padId = pad.id();

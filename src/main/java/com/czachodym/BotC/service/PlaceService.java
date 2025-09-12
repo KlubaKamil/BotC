@@ -39,7 +39,7 @@ public class PlaceService {
     public long createPlace(long groupId, PlaceDto placeDto){
         String name = placeDto.name();
         log.info("Checking if place exists.");
-        validators.throwIfExistsByName(name, placeRepository);
+        validators.throwIfExistsByNameAndGroupId(groupId, name, placeRepository);
         Place place = buildPlace(groupId, placeDto);
         log.info("Saving new place.");
         Place savedPlace = placeRepository.save(place);
@@ -55,7 +55,7 @@ public class PlaceService {
         log.info("Checking if place exists.");
         Place place = validators.throwIfNotFoundByIdAndGroupId(id, groupId, placeRepository);
         if(!place.getName().equals(placeDto.name())) {
-            validators.throwIfExistsByName(name, placeRepository);
+            validators.throwIfExistsByNameAndGroupId(groupId, name, placeRepository);
         }
         log.info("Place found, updating.");
         Place savedPlace = buildPlace(groupId, placeDto, place);
@@ -68,9 +68,14 @@ public class PlaceService {
     @Transactional
     public void deletePlace(long groupId, long id){
         log.info("Deleting a place.");
-        boolean exists = placeRepository.existsById(id);
+
+        log.info("Checking if group available: {}.", groupId);
+        validators.throwIfGroupNotAvailableMod(groupId);
+        log.info("Checking if place exists: {}.", id);
+        validators.throwIfNotFoundByIdAndGroupId(id, groupId, placeRepository);
         placeRepository.deleteById(id);
-        boolean deleted = exists & !placeRepository.existsById(id);
+        boolean deleted = placeRepository.existsById(id);
+
         log.info("Deleted: {}", deleted);
     }
 

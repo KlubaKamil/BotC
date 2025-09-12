@@ -24,7 +24,7 @@ public class GroupRole {
     @ManyToOne
     @JoinColumn(name = "groupId")
     private Group group;
-    @Column
+    @Column(name = "role_")
     @Enumerated(EnumType.STRING)
     private Role role;
 }

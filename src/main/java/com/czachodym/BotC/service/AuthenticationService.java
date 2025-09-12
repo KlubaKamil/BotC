@@ -39,7 +39,7 @@ public class AuthenticationService {
     private final UserService userService;
 
     public Map<String, String>  authenticate(JwtRequest jwtRequest){
-        final String login = "user";
+        final String login = jwtRequest.username();
         final String password = jwtRequest.password();
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(login, password));

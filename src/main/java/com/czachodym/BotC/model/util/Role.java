@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Role {
-    MEMBER("Member"),
+    MEMBER("Członek"),
     MODERATOR("Moderator"),
     GROUP_ADMIN("Admin"),
     GLOBAL_ADMIN("Admin globalny");

@@ -21,8 +21,26 @@ public interface PlayerRepository extends BotCNameJpaRepository<Player, Long> {
                 COUNT(DISTINCT gs.id),
                 COUNT(DISTINCT a.id),
                 COUNT(DISTINCT CASE WHEN gs.goodWon = true THEN gs.id ELSE NULL END),
-                COUNT(DISTINCT CASE WHEN a.good = true THEN g.id ELSE NULL END), 
-                COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
+                COUNT(DISTINCT CASE WHEN 
+                    COALESCE(
+                        (SELECT t.good FROM Transformation t
+                            JOIN a.transformations at
+                            WHERE t = at
+                                AND t.id = (SELECT MAX(t2.id) FROM Transformation t2 JOIN a.transformations at2 WHERE t2 = at2)
+                        ),
+                        a.good
+                    ) = true 
+                    THEN g.id ELSE NULL END),
+                COUNT(DISTINCT CASE WHEN g.goodWon = 
+                    COALESCE(
+                        (SELECT t.good FROM Transformation t
+                            JOIN a.transformations at
+                            WHERE t = at
+                                AND t.id = (SELECT MAX(t2.id) FROM Transformation t2 JOIN a.transformations at2 WHERE t2 = at2)
+                        ),
+                        a.good
+                    ) 
+                    THEN g.id ELSE NULL END)
             ) 
             FROM Player p
             LEFT JOIN Assignment a ON p.id = a.player.id
@@ -42,8 +60,26 @@ public interface PlayerRepository extends BotCNameJpaRepository<Player, Long> {
             SELECT new com.czachodym.BotC.dto.details.player.PlayerDetails(
                 COUNT(DISTINCT gs.id),
                 COUNT(DISTINCT g.id),
-                COUNT(DISTINCT CASE WHEN a.good = true THEN g.id ELSE NULL END),
-                COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
+                COUNT(DISTINCT CASE WHEN 
+                    COALESCE(
+                        (SELECT t.good FROM Transformation t
+                            JOIN a.transformations at
+                            WHERE t = at
+                                AND t.id = (SELECT MAX(t2.id) FROM Transformation t2 JOIN a.transformations at2 WHERE t2 = at2)
+                        ),
+                        a.good
+                    ) = true 
+                    THEN g.id ELSE NULL END),
+                COUNT(DISTINCT CASE WHEN g.goodWon = 
+                    COALESCE(
+                        (SELECT t.good FROM Transformation t
+                            JOIN a.transformations at
+                            WHERE t = at
+                                AND t.id = (SELECT MAX(t2.id) FROM Transformation t2 JOIN a.transformations at2 WHERE t2 = at2)
+                        ),
+                        a.good
+                    ) 
+                    THEN g.id ELSE NULL END)
             )
             FROM Player p
             LEFT JOIN Assignment a on p = a.player
@@ -62,7 +98,16 @@ public interface PlayerRepository extends BotCNameJpaRepository<Player, Long> {
                 c.id,
                 c.name,
                 COUNT(c.id),
-                COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
+                COUNT(DISTINCT CASE WHEN g.goodWon = 
+                    COALESCE(
+                        (SELECT t.good FROM Transformation t
+                            JOIN a.transformations at
+                            WHERE t = at
+                                AND t.id = (SELECT MAX(t2.id) FROM Transformation t2 JOIN a.transformations at2 WHERE t2 = at2)
+                        ),
+                        a.good
+                    ) 
+                    THEN g.id ELSE NULL END)
             )
             FROM Player p
             LEFT JOIN Assignment a on p = a.player
@@ -82,7 +127,16 @@ public interface PlayerRepository extends BotCNameJpaRepository<Player, Long> {
                 s.id,
                 s.name,
                 COUNT(s.id),
-                COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
+                COUNT(DISTINCT CASE WHEN g.goodWon = 
+                    COALESCE(
+                        (SELECT t.good FROM Transformation t
+                            JOIN a.transformations at
+                            WHERE t = at
+                                AND t.id = (SELECT MAX(t2.id) FROM Transformation t2 JOIN a.transformations at2 WHERE t2 = at2)
+                        ),
+                        a.good
+                    ) 
+                    THEN g.id ELSE NULL END)
             )
             FROM Player p
             LEFT JOIN Assignment a ON p = a.player

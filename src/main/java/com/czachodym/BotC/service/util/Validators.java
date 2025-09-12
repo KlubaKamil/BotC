@@ -1,17 +1,16 @@
 package com.czachodym.BotC.service.util;
 
+import com.czachodym.BotC.dao.GroupRepository;
 import com.czachodym.BotC.dao.util.BotCJpaRepository;
 import com.czachodym.BotC.dao.util.BotCNameJpaRepository;
 import com.czachodym.BotC.exception.EntityAlreadyExistsException;
 import com.czachodym.BotC.exception.EntityNotFoundException;
 import com.czachodym.BotC.exception.GroupNotAllowedException;
 import com.czachodym.BotC.model.Group;
-import com.czachodym.BotC.model.util.CurrentUser;
-import com.czachodym.BotC.model.util.BotCEntity;
-import com.czachodym.BotC.model.util.BotCNameEntity;
-import com.czachodym.BotC.model.util.Role;
+import com.czachodym.BotC.model.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.errors.GroupIdNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -22,8 +21,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class Validators {
     private final CurrentUser currentUser;
+    private final GroupRepository groupRepository;
 
     public Group throwIfGroupNotAvailableMember(long groupId){
+        GroupRole groupRole = checkGlobalAdmin(groupId);
+        if(groupRole != null){
+            return groupRole.getGroup();
+        }
         return currentUser.getGroupRoles().stream()
                 .filter(gr -> gr.getGroup().getId() == groupId &&
                         List.of(Role.MEMBER, Role.MODERATOR, Role.GROUP_ADMIN).contains(gr.getRole()))
@@ -33,6 +37,10 @@ public class Validators {
     }
 
     public Group throwIfGroupNotAvailableMod(long groupId){
+        GroupRole groupRole = checkGlobalAdmin(groupId);
+        if(groupRole != null){
+            return groupRole.getGroup();
+        }
         return currentUser.getGroupRoles().stream()
                 .filter(gr -> gr.getGroup().getId() == groupId &&
                         List.of(Role.MODERATOR, Role.GROUP_ADMIN).contains(gr.getRole()))
@@ -42,6 +50,10 @@ public class Validators {
     }
 
     public Group throwIfGroupNotAvailableAdmin(long groupId){
+        GroupRole groupRole = checkGlobalAdmin(groupId);
+        if(groupRole != null){
+            return groupRole.getGroup();
+        }
         return currentUser.getGroupRoles().stream()
                 .filter(gr -> gr.getGroup().getId() == groupId && Role.GROUP_ADMIN == gr.getRole())
                 .findFirst()
@@ -49,8 +61,28 @@ public class Validators {
                 .getGroup();
     }
 
+    public Group throwIfGroupNotAvailableGlobalAdmin(long groupId){
+        GroupRole groupRole = checkGlobalAdmin(groupId);
+        if(groupRole != null){
+            return groupRole.getGroup();
+        }
+        throw new GroupNotAllowedException(groupId);
+    }
+
+    private GroupRole checkGlobalAdmin(long groupId){
+        GroupRole groupRole = currentUser.getGroupRoles().stream()
+                .filter(gr -> Role.GLOBAL_ADMIN == gr.getRole())
+                .findFirst()
+                .orElse(null);
+        if(groupRole != null){
+            Group group = groupRepository.findById(groupId).orElseThrow();
+            groupRole.setGroup(group);
+        }
+        return groupRole;
+    }
+
     //TODO
-    public <T extends BotCEntity> List<T> throwIfEntitiesNotExist(List<Long> ids, long groupId, BotCNameJpaRepository<T, Long> repository){
+    public <T extends BotCEntity> List<T> throwIfEntitiesNotExistByGroupId(List<Long> ids, long groupId, BotCNameJpaRepository<T, Long> repository){
         List<T> entities = repository.findByIdInAndGroups_Id(ids, groupId);
         List<Long> actualIds = entities.stream()
                 .map(T::getId)
@@ -62,8 +94,8 @@ public class Validators {
     }
 
     //TODO
-    public <T> void throwIfExistsByName(String name, BotCNameJpaRepository<T, Long> repository){
-        boolean exists = repository.existsByName(name);
+    public <T> void throwIfExistsByNameAndGroupId(long groupId, String name, BotCNameJpaRepository<T, Long> repository){
+        boolean exists = repository.existsByNameAndGroups_Id(name, groupId);
         if(exists){
             throw new EntityAlreadyExistsException(name);
         }

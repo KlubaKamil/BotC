@@ -17,5 +17,6 @@ public class Group {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @Column
+    @EqualsAndHashCode.Exclude
     private String name;
 }

@@ -34,7 +34,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -109,9 +108,14 @@ public class GameService {
     @Transactional
     public void deleteGame(long id, long groupId) {
         log.info("Deleting a game: {}", id);
-        boolean exists = gameRepository.existsById(id);
+
+        log.info("Checking if group available: {}.", groupId);
+        validators.throwIfGroupNotAvailableMod(groupId);
+        log.info("Checking if game exists: {}.", id);
+        validators.throwIfNotFoundByIdAndGroupId(id, groupId, gameRepository);
         gameRepository.deleteById(id);
-        boolean deleted = exists & !gameRepository.existsById(id);
+
+        boolean deleted = gameRepository.existsById(id);
         log.info("Deleted: {}", deleted);
     }
 
@@ -297,7 +301,7 @@ public class GameService {
             List<Long> ids = fableDtos.stream()
                     .map(CharacterDto::id)
                     .toList();
-            fables = validators.throwIfEntitiesNotExist(ids, groupId, characterRepository);
+            fables = validators.throwIfEntitiesNotExistByGroupId(ids, groupId, characterRepository);
             log.info("Fables found.");
         }
 
@@ -343,9 +347,9 @@ public class GameService {
                 .toList());
         });
         log.info("Looking for players: {}", playersIds);
-        List<Player> players = validators.throwIfEntitiesNotExist(playersIds, groupId, playerRepository);
+        List<Player> players = validators.throwIfEntitiesNotExistByGroupId(playersIds, groupId, playerRepository);
         log.info("Players found, looking for characters: {}", charactersIds);
-        List<Character> characters = validators.throwIfEntitiesNotExist(charactersIds, groupId, characterRepository);
+        List<Character> characters = validators.throwIfEntitiesNotExistByGroupId(charactersIds, groupId, characterRepository);
         return assignmentDtos.stream()
             .map(a -> {
                 long playerDtoId = a.player().id();

@@ -71,7 +71,7 @@ public class CharacterService {
     public long createCharacter(long groupId, CharacterDto characterDto){
         String name = characterDto.name();
         log.info("Checking if character exists.");
-        validators.throwIfExistsByName(name, characterRepository);
+        validators.throwIfExistsByNameAndGroupId(groupId, name, characterRepository);
         Character character = buildCharacter(groupId, characterDto);
         log.info("Saving new character.");
         character = characterRepository.save(character);
@@ -87,7 +87,7 @@ public class CharacterService {
         log.info("Checking if character exists.");
         Character character = validators.throwIfNotFoundByIdAndGroupId(id, groupId, characterRepository);
         if(!character.getName().equals(characterDto.name())) {
-            validators.throwIfExistsByName(name, characterRepository);
+            validators.throwIfExistsByNameAndGroupId(groupId, name, characterRepository);
         }
         log.info("Character found, updating.");
         Character updatedCharacter = buildCharacter(groupId, characterDto, character);
@@ -105,9 +105,13 @@ public class CharacterService {
     @Transactional
     public void deleteCharacter(long id, long groupId){
         log.info("Deleting a character.");
-        boolean exists = characterRepository.existsById(id);
+
+        log.info("Checking if group available: {}.", groupId);
+        validators.throwIfGroupNotAvailableMod(groupId);
+        log.info("Checking if character exists: {}.", id);
+        validators.throwIfNotFoundByIdAndGroupId(id, groupId, characterRepository);
         characterRepository.deleteById(id);
-        boolean deleted = exists & !characterRepository.existsById(id);
+        boolean deleted = characterRepository.existsById(id);
         log.info("Deleted: {}", deleted);
     }
 

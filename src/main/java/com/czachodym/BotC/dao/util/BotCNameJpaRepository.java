@@ -9,5 +9,5 @@ import java.util.Optional;
 public interface BotCNameJpaRepository<T, ID> extends BotCJpaRepository<T, ID> {
     List<T> findByNameIn(List<String> names);
     Optional<T> findByName(String name);
-    boolean existsByName(String name);
+    boolean existsByNameAndGroups_Id(String name, long groupId);
 }

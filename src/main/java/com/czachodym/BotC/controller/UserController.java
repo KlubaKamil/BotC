@@ -20,7 +20,6 @@ public class UserController {
 
     @GetMapping("/all")
     public ResponseEntity<List<UserDto>> getAllUsers(){
-        log.info("EBE");
         return null;
     }
 
@@ -56,12 +55,36 @@ public class UserController {
         return ResponseEntity.ok(Map.of("id", id));
     }
 
+    @PostMapping("/admin/{groupId}/{username}")
+    public ResponseEntity<Map<String, Long>> adminUser(@PathVariable long groupId, @PathVariable String username){
+        log.info("Trying to admin user: {}, groupId: {}", username, groupId);
+        long id = userService.adminUser(groupId, username);
+        log.info("User set as administrator successfully.");
+        return ResponseEntity.ok(Map.of("id", id));
+    }
+
+    @PostMapping("/unadmin/{groupId}/{username}")
+    public ResponseEntity<Map<String, Long>> unadminUser(@PathVariable long groupId, @PathVariable String username){
+        log.info("Trying to unmod user: {}, groupId: {}", username, groupId);
+        long id = userService.unadminUser(groupId, username);
+        log.info("User deleted from being an administrator successfully.");
+        return ResponseEntity.ok(Map.of("id", id));
+    }
+
     @GetMapping("/group/{groupId}")
     public ResponseEntity<List<UserDto>> getAllGroupUsers(@PathVariable long groupId){
         log.info("Getting all users for groupId: {}.", groupId);
         List<UserDto> groupUsers = userService.getGroupUsersByRole(groupId, null);
         log.info("Finished getting all users");
         return ResponseEntity.ok(groupUsers);
+    }
+
+    @GetMapping("/notgroup/{groupId}")
+    public ResponseEntity<List<UserDto>> getAllNotGroupUsers(@PathVariable long groupId){
+        log.info("Getting all users not in groupId: {}.", groupId);
+        List<UserDto> users = userService.getAllUsersNotInGroup(groupId);
+        log.info("Finished getting all users");
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/group/{groupId}/{role}")

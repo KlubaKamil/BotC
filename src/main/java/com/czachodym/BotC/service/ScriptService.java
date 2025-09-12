@@ -66,7 +66,7 @@ public class ScriptService {
     public long createScript(long groupId, ScriptDto scriptDto){
         String name = scriptDto.name();
         log.info("Checking if script exists.");
-        validators.throwIfExistsByName(name, scriptRepository);
+        validators.throwIfExistsByNameAndGroupId(groupId, name, scriptRepository);
         Script script = buildScript(groupId, scriptDto);
         log.info("Saving a new script.");
         Script savedScript = scriptRepository.save(script);
@@ -82,7 +82,7 @@ public class ScriptService {
         log.info("Checking if script exists.");
         Script script = validators.throwIfNotFoundByIdAndGroupId(id, groupId, scriptRepository);
         if(!script.getName().equals(scriptDto.name())) {
-            validators.throwIfExistsByName(name, scriptRepository);
+            validators.throwIfExistsByNameAndGroupId(groupId, name, scriptRepository);
         }
         log.info("Script found, updating.");
         Script updatedScript = buildScript(groupId, scriptDto, script);
@@ -95,9 +95,14 @@ public class ScriptService {
     @Transactional
     public void deleteScript(long id, long groupId){
         log.info("Deleting a script: {}", id);
-        boolean exists = scriptRepository.existsById(id);
+
+        log.info("Checking if group available: {}.", groupId);
+        validators.throwIfGroupNotAvailableMod(groupId);
+        log.info("Checking if script exists: {}.", id);
+        validators.throwIfNotFoundByIdAndGroupId(id, groupId, scriptRepository);
         scriptRepository.deleteById(id);
-        boolean deleted = exists & !scriptRepository.existsById(id);
+        boolean deleted = scriptRepository.existsById(id);
+
         log.info("Deleted: {}", deleted);
     }
 
@@ -151,7 +156,7 @@ public class ScriptService {
         List<Long> characterIds = scriptDto.scriptCharacters().stream()
                 .map(sc -> sc.character().id())
                 .toList();
-        List<Character> characters = validators.throwIfEntitiesNotExist(characterIds, groupId, characterRepository)
+        List<Character> characters = validators.throwIfEntitiesNotExistByGroupId(characterIds, groupId, characterRepository)
                 .stream().sorted(Comparator.comparingLong(c -> characterIds.indexOf(c.getId())))
                 .toList();
         List<ScriptCharacter> scriptCharacters = new ArrayList<>(characters.size());

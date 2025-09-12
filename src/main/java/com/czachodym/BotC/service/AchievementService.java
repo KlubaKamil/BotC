@@ -58,7 +58,7 @@ public class AchievementService {
     public long createAchievement(long groupId, AchievementDto achievementDto){
         String name = achievementDto.name();
         log.info("Checking if achievement exists.");
-        validators.throwIfExistsByName(name, achievementRepository);
+        validators.throwIfExistsByNameAndGroupId(groupId, name, achievementRepository);
         Achievement achievement = buildAchievement(groupId, achievementDto);
         log.info("Saving new achievement.");
         Achievement savedAchievement = achievementRepository.save(achievement);
@@ -74,7 +74,7 @@ public class AchievementService {
         log.info("Checking if achievement exists.");
         Achievement achievement = validators.throwIfNotFoundByIdAndGroupId(id, groupId, achievementRepository);
         if(!achievement.getName().equals(achievementDto.name())) {
-            validators.throwIfExistsByName(name, achievementRepository);
+            validators.throwIfExistsByNameAndGroupId(groupId, name, achievementRepository);
         }
         log.info("Achievement found, updating.");
         Achievement savedAchievement = buildAchievement(groupId, achievementDto, achievement);
@@ -87,9 +87,13 @@ public class AchievementService {
     @Transactional
     public void deleteAchievement(long id, long groupId){
         log.info("Deleting a achievement.");
-        boolean exists = achievementRepository.existsById(id);
+
+        log.info("Checking if group available: {}.", groupId);
+        validators.throwIfGroupNotAvailableMod(groupId);
+        log.info("Checking if achievement exists: {}.", id);
+        validators.throwIfNotFoundByIdAndGroupId(id, groupId, achievementRepository);
         achievementRepository.deleteById(id);
-        boolean deleted = exists & !achievementRepository.existsById(id);
+        boolean deleted = achievementRepository.existsById(id);
         log.info("Deleted: {}", deleted);
     }
 

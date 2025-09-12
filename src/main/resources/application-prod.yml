@@ -27,5 +27,8 @@ jwt:
       time: 2592000
 
 discord:
-  clientId:
-  secret:
+  clientId: ${DISCORD_CLIENT_ID}
+  secret: ${DISCORD_SECRET}
+  token-url: ${DISCORD_TOKEN_URL}
+  user-url: ${DISCORD_USER_URL}
+  redirect-uri: ${DISCORD_REDIRECT_URL}
