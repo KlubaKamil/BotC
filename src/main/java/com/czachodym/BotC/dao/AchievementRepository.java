@@ -1,6 +1,6 @@
 package com.czachodym.BotC.dao;
 
-import com.czachodym.BotC.dao.util.NameJpaRepository;
+import com.czachodym.BotC.dao.util.BotCNameJpaRepository;
 import com.czachodym.BotC.dto.details.achievement.AchievementDetails;
 import com.czachodym.BotC.dto.details.achievement.AchievementPlayerDetails;
 import com.czachodym.BotC.dto.headers.AchievementHeader;
@@ -9,10 +9,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
-public interface AchievementRepository extends NameJpaRepository<Achievement, Long> {
+public interface AchievementRepository extends BotCNameJpaRepository<Achievement, Long> {
     @Query("""
             SELECT new com.czachodym.BotC.dto.headers.AchievementHeader(
                 a.id,
@@ -20,8 +19,10 @@ public interface AchievementRepository extends NameJpaRepository<Achievement, Lo
                 a.description
             )
             FROM Achievement a
+            JOIN a.groups gr
+            WHERE gr.id = :groupId
         """)
-    List<AchievementHeader> findAllAchievementHeaders();
+    List<AchievementHeader> findAllAchievementHeaders(long groupId);
 
     @Query("""
             SELECT new com.czachodym.BotC.dto.details.achievement.AchievementDetails(

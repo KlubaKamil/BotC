@@ -1,6 +1,6 @@
 package com.czachodym.BotC.dao;
 
-import com.czachodym.BotC.dao.util.NameJpaRepository;
+import com.czachodym.BotC.dao.util.BotCNameJpaRepository;
 import com.czachodym.BotC.dto.details.player.PlayerCharacterDetails;
 import com.czachodym.BotC.dto.details.player.PlayerDetails;
 import com.czachodym.BotC.dto.details.player.PlayerScriptDetails;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface PlayerRepository extends NameJpaRepository<Player, Long> {
+public interface PlayerRepository extends BotCNameJpaRepository<Player, Long> {
     @Query("""
             SELECT new com.czachodym.BotC.dto.headers.PlayerHeader(
                 p.id,
@@ -21,8 +21,26 @@ public interface PlayerRepository extends NameJpaRepository<Player, Long> {
                 COUNT(DISTINCT gs.id),
                 COUNT(DISTINCT a.id),
                 COUNT(DISTINCT CASE WHEN gs.goodWon = true THEN gs.id ELSE NULL END),
-                COUNT(DISTINCT CASE WHEN a.good = true THEN g.id ELSE NULL END), 
-                COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
+                COUNT(DISTINCT CASE WHEN 
+                    COALESCE(
+                        (SELECT t.good FROM Transformation t
+                            JOIN a.transformations at
+                            WHERE t = at
+                                AND t.id = (SELECT MAX(t2.id) FROM Transformation t2 JOIN a.transformations at2 WHERE t2 = at2)
+                        ),
+                        a.good
+                    ) = true 
+                    THEN g.id ELSE NULL END),
+                COUNT(DISTINCT CASE WHEN g.goodWon = 
+                    COALESCE(
+                        (SELECT t.good FROM Transformation t
+                            JOIN a.transformations at
+                            WHERE t = at
+                                AND t.id = (SELECT MAX(t2.id) FROM Transformation t2 JOIN a.transformations at2 WHERE t2 = at2)
+                        ),
+                        a.good
+                    ) 
+                    THEN g.id ELSE NULL END)
             ) 
             FROM Player p
             LEFT JOIN Assignment a ON p.id = a.player.id
@@ -32,16 +50,36 @@ public interface PlayerRepository extends NameJpaRepository<Player, Long> {
                 WHERE a2.id = a.id
             )
             LEFT JOIN Game gs on gs.storyteller = p
+            JOIN p.groups gr
+            WHERE gr.id = :groupId
             GROUP BY p.id, p.name
-        """)
-    List<PlayerHeader> findAllPlayerHeaders();
+            """)
+    List<PlayerHeader> findAllPlayerHeaders(long groupId);
 
     @Query("""
             SELECT new com.czachodym.BotC.dto.details.player.PlayerDetails(
                 COUNT(DISTINCT gs.id),
                 COUNT(DISTINCT g.id),
-                COUNT(DISTINCT CASE WHEN a.good = true THEN g.id ELSE NULL END),
-                COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
+                COUNT(DISTINCT CASE WHEN 
+                    COALESCE(
+                        (SELECT t.good FROM Transformation t
+                            JOIN a.transformations at
+                            WHERE t = at
+                                AND t.id = (SELECT MAX(t2.id) FROM Transformation t2 JOIN a.transformations at2 WHERE t2 = at2)
+                        ),
+                        a.good
+                    ) = true 
+                    THEN g.id ELSE NULL END),
+                COUNT(DISTINCT CASE WHEN g.goodWon = 
+                    COALESCE(
+                        (SELECT t.good FROM Transformation t
+                            JOIN a.transformations at
+                            WHERE t = at
+                                AND t.id = (SELECT MAX(t2.id) FROM Transformation t2 JOIN a.transformations at2 WHERE t2 = at2)
+                        ),
+                        a.good
+                    ) 
+                    THEN g.id ELSE NULL END)
             )
             FROM Player p
             LEFT JOIN Assignment a on p = a.player
@@ -60,7 +98,16 @@ public interface PlayerRepository extends NameJpaRepository<Player, Long> {
                 c.id,
                 c.name,
                 COUNT(c.id),
-                COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
+                COUNT(DISTINCT CASE WHEN g.goodWon = 
+                    COALESCE(
+                        (SELECT t.good FROM Transformation t
+                            JOIN a.transformations at
+                            WHERE t = at
+                                AND t.id = (SELECT MAX(t2.id) FROM Transformation t2 JOIN a.transformations at2 WHERE t2 = at2)
+                        ),
+                        a.good
+                    ) 
+                    THEN g.id ELSE NULL END)
             )
             FROM Player p
             LEFT JOIN Assignment a on p = a.player
@@ -80,7 +127,16 @@ public interface PlayerRepository extends NameJpaRepository<Player, Long> {
                 s.id,
                 s.name,
                 COUNT(s.id),
-                COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
+                COUNT(DISTINCT CASE WHEN g.goodWon = 
+                    COALESCE(
+                        (SELECT t.good FROM Transformation t
+                            JOIN a.transformations at
+                            WHERE t = at
+                                AND t.id = (SELECT MAX(t2.id) FROM Transformation t2 JOIN a.transformations at2 WHERE t2 = at2)
+                        ),
+                        a.good
+                    ) 
+                    THEN g.id ELSE NULL END)
             )
             FROM Player p
             LEFT JOIN Assignment a ON p = a.player

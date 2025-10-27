@@ -1,6 +1,6 @@
 package com.czachodym.BotC.dao;
 
-import com.czachodym.BotC.dao.util.NameJpaRepository;
+import com.czachodym.BotC.dao.util.BotCNameJpaRepository;
 import com.czachodym.BotC.dto.details.character.CharacterDetails;
 import com.czachodym.BotC.dto.details.character.CharacterInScriptDetails;
 import com.czachodym.BotC.dto.headers.CharacterHeader;
@@ -12,9 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CharacterRepository extends NameJpaRepository<Character, Long> {
-    boolean existsByName(String name);
-
+public interface CharacterRepository extends BotCNameJpaRepository<Character, Long> {
     @Query("""
             SELECT new com.czachodym.BotC.dto.headers.CharacterHeader(
                 c.id,
@@ -24,8 +22,10 @@ public interface CharacterRepository extends NameJpaRepository<Character, Long> 
                 c.description,
                 c.linkToWiki)
             FROM Character c
+            JOIN c.groups gr
+            WHERE gr.id = :groupId
         """)
-    List<CharacterHeader> findAllCharacterHeaders();
+    List<CharacterHeader> findAllCharacterHeaders(long groupId);
 
     @Query("""
             SELECT new com.czachodym.BotC.dto.details.character.CharacterDetails(
@@ -46,9 +46,10 @@ public interface CharacterRepository extends NameJpaRepository<Character, Long> 
                 COUNT(DISTINCT CASE WHEN g.goodWon = a.good THEN g.id ELSE NULL END)
             )
             FROM Script s
-            LEFT JOIN s.characters c
+            LEFT JOIN s.scriptCharacters sc
+            LEFT JOIN sc.character c
             LEFT JOIN Game g ON g.script.id = s.id
-            LEFT JOIN g.assignments a ON a.character.id = :id
+            LEFT JOIN g.assignments a
             WHERE c.id = :id
             GROUP BY s.id, s.name
             ORDER BY COUNT(DISTINCT g.id) DESC

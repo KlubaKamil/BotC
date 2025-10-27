@@ -1,9 +1,12 @@
 package com.czachodym.BotC.model;
 
+import com.czachodym.BotC.model.util.BotCNameEntity;
 import com.czachodym.BotC.model.util.PlayerAchievement;
-import com.czachodym.BotC.model.util.BotCEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
@@ -15,7 +18,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @RequiredArgsConstructor
-public class Player extends BotCEntity implements Serializable {
+public class Player extends BotCNameEntity implements Serializable {
     @Column
     private String discordName;
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)

@@ -30,3 +30,10 @@ kafka:
     notification: notificationtopic
     channels: channelstopic
     channels-response: channelsresponsetopic
+
+discord:
+  clientId:
+  secret:
+  token-url:
+  user-url:
+  redirect-uri:

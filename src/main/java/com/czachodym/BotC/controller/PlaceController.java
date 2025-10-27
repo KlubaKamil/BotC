@@ -16,49 +16,49 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
-@RequestMapping("/place")
+@RequestMapping("/place/{groupId}")
 @RequiredArgsConstructor
 @Slf4j
 public class PlaceController {
     private final PlaceService placeService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<PlaceDto> getPlace(@PathVariable long id){
-        log.info("Getting a Place: {}", id);
-        PlaceDto PlaceDto = placeService.getPlace(id);
-        log.info("Finished getting a Place");
+    public ResponseEntity<PlaceDto> getPlace(@PathVariable long id, @PathVariable long groupId){
+        log.info("Getting a place: id: {}, groupId: {}", id, groupId);
+        PlaceDto PlaceDto = placeService.getPlace(id, groupId);
+        log.info("Finished getting a place");
         return ResponseEntity.ok(PlaceDto);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<PlaceDto>> getAllPlaces(){
-        log.info("Getting all Places.");
-        List<PlaceDto> PlaceDtos = placeService.getAllPlaces();
-        log.info("Finished getting all Places");
+    public ResponseEntity<List<PlaceDto>> getAllPlaces(@PathVariable long groupId){
+        log.info("Getting all places for groupId: {}.", groupId);
+        List<PlaceDto> PlaceDtos = placeService.getAllPlaces(groupId);
+        log.info("Finished getting all places");
         return ResponseEntity.ok(PlaceDtos);
     }
 
     @PutMapping
-    public ResponseEntity<Map<String, Long>> addPlace(@Valid @RequestBody PlaceDto PlaceDto){
-        log.info("Creating new Place: {}", PlaceDto);
-        long id = placeService.createPlace(PlaceDto);
-        log.info("Finished creating new Place.");
+    public ResponseEntity<Map<String, Long>> addPlace(@PathVariable long groupId, @Valid @RequestBody PlaceDto placeDto){
+        log.info("Creating new place, groupId: {}, dto: {}", groupId, placeDto);
+        long id = placeService.createPlace(groupId, placeDto);
+        log.info("Finished creating new place.");
         return ResponseEntity.status(CREATED).body(Map.of("id", id));
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, Long>> editPlace(@Valid @RequestBody PlaceDto PlaceDto){
-        log.info("Editing an existing Place: {}", PlaceDto);
-        long id = placeService.editPlace(PlaceDto);
-        log.info("Finished editing an existing Place.");
+    public ResponseEntity<Map<String, Long>> editPlace(@PathVariable long groupId, @Valid @RequestBody PlaceDto placeDto){
+        log.info("Editing an existing place, groupId: {}, dto: {}", groupId, placeDto);
+        long id = placeService.editPlace(groupId, placeDto);
+        log.info("Finished editing an existing place.");
         return ResponseEntity.ok(Map.of("id", id));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(NO_CONTENT)
-    public void deletePlace(@PathVariable("id") long id){
-        log.info("Deleting a Place: {}", id);
-        placeService.deletePlace(id);
-        log.info("Finished deleting a Place");
+    public void deletePlace(@PathVariable long id, @PathVariable long groupId){
+        log.info("Deleting a place, id: {}, groupId: {}", id, groupId);
+        placeService.deletePlace(groupId, id);
+        log.info("Finished deleting a place");
     }
 }

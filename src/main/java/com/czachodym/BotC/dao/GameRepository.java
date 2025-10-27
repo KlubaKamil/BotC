@@ -1,5 +1,6 @@
 package com.czachodym.BotC.dao;
 
+import com.czachodym.BotC.dao.util.BotCJpaRepository;
 import com.czachodym.BotC.dto.headers.GameHeader;
 import com.czachodym.BotC.model.Game;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface GameRepository extends JpaRepository<Game, Long> {
+public interface GameRepository extends BotCJpaRepository<Game, Long> {
     @Query("""
             SELECT new com.czachodym.BotC.dto.headers.GameHeader(
                 g.id,
@@ -21,6 +22,8 @@ public interface GameRepository extends JpaRepository<Game, Long> {
             FROM Game g
             LEFT JOIN g.script s
             LEFT JOIN g.storyteller p
+            JOIN g.groups gr
+            WHERE gr.id = :groupId
         """)
-    List<GameHeader> findAllGameHeaders();
+    List<GameHeader> findAllGameHeaders(long groupId);
 }

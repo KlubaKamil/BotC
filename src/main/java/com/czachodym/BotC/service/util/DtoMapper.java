@@ -5,18 +5,16 @@ import com.czachodym.BotC.dto.details.achievement.AchievementDetails;
 import com.czachodym.BotC.dto.details.character.CharacterDetails;
 import com.czachodym.BotC.dto.details.player.PlayerDetails;
 import com.czachodym.BotC.dto.details.script.ScriptDetails;
-import com.czachodym.BotC.dto.util.AssignmentDto;
-import com.czachodym.BotC.dto.util.PlayerAchievementDto;
-import com.czachodym.BotC.dto.util.TransformationDto;
+import com.czachodym.BotC.dto.util.*;
 import com.czachodym.BotC.model.*;
 import com.czachodym.BotC.model.Character;
-import com.czachodym.BotC.model.util.Assignment;
-import com.czachodym.BotC.model.util.PlayerAchievement;
-import com.czachodym.BotC.model.util.Transformation;
+import com.czachodym.BotC.model.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -28,10 +26,11 @@ public class DtoMapper {
     public ScriptDto mapScript(Script script, ScriptDetails scriptDetails){
         return ScriptDto.builder()
                 .id(script.getId())
+                .groups(script.getGroups())
                 .name(script.getName())
                 .author(script.getAuthor())
                 .notes(script.getNotes())
-                .characters(mapCharacterList(script.getCharacters()))
+                .scriptCharacters(mapScriptCharacterList(script.getScriptCharacters()))
                 .scriptDetails(scriptDetails)
                 .build();
     }
@@ -50,6 +49,7 @@ public class DtoMapper {
         return character == null ? null :
                 CharacterDto.builder()
                 .id(character.getId())
+                .groups(character.getGroups())
                 .name(character.getName())
                 .maxStartNumber(character.getMaxStartNumber())
                 .alignment(character.getAlignment())
@@ -67,19 +67,33 @@ public class DtoMapper {
                 .toList();
     }
 
+    public ScriptCharacterDto mapScriptCharacter(ScriptCharacter scriptCharacter){
+        return ScriptCharacterDto.builder()
+                .character(mapCharacter(scriptCharacter.getCharacter()))
+                .characterOrder(scriptCharacter.getCharacterOrder())
+                .build();
+    }
+
+    public List<ScriptCharacterDto> mapScriptCharacterList(List<ScriptCharacter> scriptCharacters){
+        return scriptCharacters.stream()
+                .map(this::mapScriptCharacter)
+                .toList();
+    }
+
     public GameDto mapGame(Game game){
         return GameDto.builder()
                 .id(game.getId())
+                .groups(game.getGroups())
                 .script(mapScript(game.getScript()))
                 .storyteller(mapPlayer(game.getStoryteller()))
-                .fabled(mapCharacter(game.getFabled()))
-                .assignments(mapAssignments(game.getAssignments()))
+                .fables(mapCharacterList(game.getFables()))
+                .assignments(mapAssignmentList(game.getAssignments()))
                 .goodWon(game.isGoodWon())
                 .date(game.getDate())
                 .notes(game.getNotes())
                 .place(mapPlace(game.getPlace()))
                 .imageUploaded(game.isImageUploaded())
-                .balanceMarks(game.getBalanceMarks())
+                .balanceMarks(mapBalanceMarkSet(game.getBalanceMarks()))
                 .build();
     }
 
@@ -96,6 +110,7 @@ public class DtoMapper {
     public PlayerDto mapPlayer(Player player, PlayerDetails playerDetails){
         return PlayerDto.builder()
                 .id(player.getId())
+                .groups(player.getGroups())
                 .name(player.getName())
                 .discordName(player.getDiscordName())
                 .playerAchievements(mapPlayerAchievementList(player.getPlayerAchievements()))
@@ -119,7 +134,7 @@ public class DtoMapper {
                 .build();
     }
 
-    public List<AssignmentDto> mapAssignments(List<Assignment> assignments){
+    public List<AssignmentDto> mapAssignmentList(List<Assignment> assignments){
         return assignments.stream()
                 .map(this::mapAssignment)
                 .toList();
@@ -142,6 +157,7 @@ public class DtoMapper {
         return place == null ? null :
                 PlaceDto.builder()
                 .id(place.getId())
+                .groups(place.getGroups())
                 .name(place.getName())
                 .build();
     }
@@ -158,6 +174,7 @@ public class DtoMapper {
     public AchievementDto mapAchievement(Achievement achievement, AchievementDetails achievementDetails){
         return AchievementDto.builder()
                 .id(achievement.getId())
+                .groups(achievement.getGroups())
                 .name(achievement.getName())
                 .description(achievement.getDescription())
                 .achievementDetails(achievementDetails)
@@ -184,5 +201,43 @@ public class DtoMapper {
                 .toList();
     }
 
+    public UserDto mapUser(User user){
+        return UserDto.builder()
+                .id(user.getId())
+                .name(user.getUsername())
+                .groupRoles(user.getGroupRoles())
+                .build();
+    }
 
+    public List<UserDto> mapUserList(List<User> users){
+        return users.stream()
+                .map(this::mapUser)
+                .toList();
+    }
+
+    public GroupDto mapGroup(Group group){
+        return GroupDto.builder()
+                .id(group.getId())
+                .name(group.getName())
+                .build();
+    }
+
+    public List<GroupDto> mapGroup(List<Group> groups){
+        return groups.stream()
+                .map(this::mapGroup)
+                .toList();
+    }
+
+    public BalanceMarkDto mapBalanceMark(BalanceMark balanceMark){
+        return BalanceMarkDto.builder()
+                .username(balanceMark.getUsername())
+                .mark(balanceMark.getMark())
+                .build();
+    }
+
+    public Set<BalanceMarkDto> mapBalanceMarkSet(Set<BalanceMark> balanceMarks){
+        return balanceMarks.stream()
+                .map(this::mapBalanceMark)
+                .collect(Collectors.toSet());
+    }
 }

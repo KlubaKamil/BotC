@@ -3,22 +3,26 @@ package com.czachodym.BotC.service;
 import com.czachodym.BotC.dao.*;
 import com.czachodym.BotC.dto.CharacterDto;
 import com.czachodym.BotC.dto.GameDto;
-import com.czachodym.BotC.dto.headers.GameHeader;
 import com.czachodym.BotC.dto.PlaceDto;
+import com.czachodym.BotC.dto.headers.GameHeader;
 import com.czachodym.BotC.dto.util.AssignmentDto;
+import com.czachodym.BotC.dto.util.BalanceMarkDto;
 import com.czachodym.BotC.dto.util.TransformationDto;
-import com.czachodym.BotC.model.*;
 import com.czachodym.BotC.model.Character;
+import com.czachodym.BotC.model.*;
 import com.czachodym.BotC.model.util.Assignment;
+import com.czachodym.BotC.model.util.BalanceMark;
+import com.czachodym.BotC.model.util.CurrentUser;
 import com.czachodym.BotC.model.util.Transformation;
 import com.czachodym.BotC.service.util.DtoMapper;
+import com.czachodym.BotC.service.util.Validators;
 import com.czachodym.botcshared.dto.NotificationMode;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,11 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
-import static com.czachodym.BotC.service.util.CommonMethods.*;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -49,35 +49,37 @@ public class GameService {
     private final PlaceRepository placeRepository;
     private final DtoMapper dtoMapper;
     private final Path root = Paths.get(IMAGES_DIR);
+    private final Validators validators;
+    private final CurrentUser currentUser;
 
     @PostConstruct
     public void init() throws IOException {
         Files.createDirectories(root);
     }
 
-    public GameDto getGame(long id) {
+    public GameDto getGame(long id, long groupId) {
         log.info("Checking if game exists.");
-        Game game = throwIfNotFoundById(id, gameRepository);
+        Game game = validators.throwIfNotFoundByIdAndGroupId(id, groupId, gameRepository);
         log.info("Game found.");
         return dtoMapper.mapGame(game);
     }
 
-    public List<GameDto> getAllGames() {
+    public List<GameDto> getAllGames(long groupId) {
         log.info("Getting all games");
-        List<Game> games = gameRepository.findAll();
+        List<Game> games = gameRepository.findByGroups_Id(groupId);
         log.info("Games found.");
         return dtoMapper.mapGameList(games);
     }
 
-    public List<GameHeader> getAllGameHeaders() {
+    public List<GameHeader> getAllGameHeaders(long groupId) {
         log.info("Getting all game headers");
-        List<GameHeader> gameHeaders = gameRepository.findAllGameHeaders();
+        List<GameHeader> gameHeaders = gameRepository.findAllGameHeaders(groupId);
         log.info("Headers found.");
         return gameHeaders;
     }
 
-    public long createGame(GameDto gameDto) {
-        Game game = buildGame(gameDto);
+    public long createGame(long groupId, GameDto gameDto) {
+        Game game = buildGame(groupId, gameDto);
         log.info("Saving a new game.");
         Game savedGame = gameRepository.save(game);
         long id = savedGame.getId();
@@ -86,36 +88,41 @@ public class GameService {
         return game.getId();
     }
 
-    public long editGame(GameDto gameDto) {
+    public long editGame(long groupId, GameDto gameDto) {
         long id = gameDto.id();
         log.info("Checking if game exists.");
-        Game game = throwIfNotFoundById(id, gameRepository);
+        Game game = validators.throwIfNotFoundByIdAndGroupId(id, groupId, gameRepository);
         log.info("Game found, updating.");
-        Game updatedGame = buildGame(gameDto, game);
+        Game updatedGame = buildGame(groupId, gameDto, game);
         log.info("Updating a game.");
         gameRepository.save(updatedGame);
         log.info("Game updated. Id: {}", id);
         boolean hasImage = gameDto.imageUploaded();
         if(!hasImage){
             log.info("Trying to delete image.");
-            deleteImage(gameDto.id());
+            deleteImage(groupId, gameDto.id());
         }
         return id;
     }
 
     @Transactional
-    public void deleteGame(long id) {
+    public void deleteGame(long id, long groupId) {
         log.info("Deleting a game: {}", id);
-        boolean exists = gameRepository.existsById(id);
+
+        log.info("Checking if group available: {}.", groupId);
+        validators.throwIfGroupNotAvailableMod(groupId);
+        log.info("Checking if game exists: {}.", id);
+        validators.throwIfNotFoundByIdAndGroupId(id, groupId, gameRepository);
         gameRepository.deleteById(id);
-        boolean deleted = exists & !gameRepository.existsById(id);
+
+        boolean deleted = gameRepository.existsById(id);
         log.info("Deleted: {}", deleted);
     }
 
-    public boolean uploadImage(long id, MultipartFile image) {
+    public boolean uploadImage(long id, long groupId, MultipartFile image) {
         try{
             log.info("Checking if game exists.");
-            Game game = throwIfNotFoundById(id, gameRepository);
+            Game game = validators.throwIfNotFoundByIdAndGroupId(id, groupId, gameRepository);
             log.info("Game found, saving.");
             String filename = "game_" + id + ".jpg";
             Path filePath = root.resolve(filename);
@@ -129,7 +136,7 @@ public class GameService {
         }
     }
 
-    public Resource getImage(long id){
+    public Resource getImage(long id, long groupId){
         Path filePath = root.resolve(Paths.get("game_" + id + ".jpg"));
         try {
             return new UrlResource(filePath.toUri());
@@ -138,18 +145,49 @@ public class GameService {
         }
     }
 
+    public String addBalanceMark(long groupId, long gameId, BalanceMarkDto balanceMarkDto){
+        Game game = validateBalanceMark(groupId, gameId, balanceMarkDto.username());
+        Optional<BalanceMark> balanceMarkOptional = game.getBalanceMarks().stream()
+                .filter(bm -> bm.getUsername().equals(balanceMarkDto.username()))
+                .findFirst();
+        if(balanceMarkOptional.isPresent()){
+            log.info("Balance mark already exists, updating...");
+            balanceMarkOptional.get().setMark(balanceMarkDto.mark());
+        } else {
+            log.info("Balance mark not exist, adding new one");
+            game.getBalanceMarks().add(BalanceMark.builder()
+                    .username(balanceMarkDto.username())
+                    .mark(balanceMarkDto.mark())
+                    .build());
+        }
+        gameRepository.save(game);
+        log.info("Balance mark added successfully.");
+        return balanceMarkDto.username();
+    }
+
+    public void deleteBalanceMark(long groupId, long gameId, String username){
+        Game game = validateBalanceMark(groupId, gameId, username);
+        Optional<BalanceMark> balanceMarkOptional = game.getBalanceMarks().stream()
+                .filter(bm -> bm.getUsername().equals(username))
+                .findFirst();
+        log.info("Game found, deleting balance mark...");
+        balanceMarkOptional.ifPresent(balanceMark -> game.getBalanceMarks().remove(balanceMark));
+        gameRepository.save(game);
+        log.info("Balance mark deleted successfully.");
+    }
+
     public String getMessage(long id, NotificationMode notificationMode){
         String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nową grę!" : "Edytowano grę!";
-        Game game = throwIfNotFoundById(id, gameRepository);
+        Game game = validators.throwIfNotFoundByIdAndGroupId(id, 0, gameRepository);
         String script = game.getScript().getName();
         String storyteller = game.getStoryteller().getName();
-        String fabled = getIfObjectNull(game.getFabled(), "-");
+        String fabled = getFables(game.getFables());
         String goodWon = game.isGoodWon() ? "Dobro" : "Zło";
         String date = game.getDate() == null ? "-" : game.getDate().toString();
-        String place = getIfObjectNull(game.getPlace(), "-");
+        String place = validators.getIfBotCEntityNotNull(game.getPlace(), "-");
         String balance = getBalance(game.getBalanceMarks());
         String assignments = getAssignments(game.getAssignments());
-        String notes = getIfNull(game.getNotes(), "-");
+        String notes = validators.getIfNotNull(game.getNotes(), "-");
         return """
                 %s
                 Id: %d
@@ -169,10 +207,10 @@ public class GameService {
                     notes, FRONTEND_URL, id);
     }
 
-    private String getBalance(List<Integer> balanceMarks){
+    private String getBalance(Set<BalanceMark> balanceMarks){
         if(balanceMarks == null || balanceMarks.size() == 0) return "-";
         double average = balanceMarks.stream()
-                .mapToInt(Integer::intValue)
+                .mapToInt(BalanceMark::getMark)
                 .average()
                 .orElse(0);
         average = Math.round(average * 10.0) / 10.0;
@@ -182,6 +220,18 @@ public class GameService {
         balance += balanceMarks.size();
         balance += " ocen.";
         return balance;
+    }
+
+    private String getFables(List<Character> fables){
+        if (fables.size() == 0){
+            return "";
+        }
+        String message = fables.get(0).getName();
+        for(int i = 1; i < fables.size(); i++){
+            Character fable = fables.get(i);
+            message += ", " + fable.getName();
+        }
+        return message;
     }
 
     private String getAssignments(List<Assignment> assignments){
@@ -201,7 +251,18 @@ public class GameService {
         return isGood ? "Dobro" : "Zło";
     }
 
-    private void deleteImage(long id) {
+    private Game validateBalanceMark(long groupId, long gameId, String username){
+        log.info("Checking if username is correct: {}", username);
+        if(!currentUser.getUsername().equals(username)){
+            throw new IllegalArgumentException();
+        }
+        log.info("Username correct, checking if group is available: {}", groupId);
+        validators.throwIfGroupNotAvailableMember(groupId);
+        log.info("Group available, getting a game: {}", gameId);
+        return validators.throwIfNotFoundByIdAndGroupId(gameId, groupId, gameRepository);
+    }
+
+    private void deleteImage(long id, long groupId) {
         Path filePath = root.resolve(Paths.get("game_" + id + ".jpg"));
         try {
             Files.delete(filePath);
@@ -211,38 +272,41 @@ public class GameService {
         }
     }
 
-    private Game buildGame(GameDto gameDto){
-        return buildGame(gameDto, Game.builder());
+    private Game buildGame(long groupId, GameDto gameDto){
+        return buildGame(groupId, gameDto, new Game());
     }
 
-    private Game buildGame(GameDto gameDto, Game game){
-        Game.GameBuilder gameBuilder = game.toBuilder()
-                .id(gameDto.id());
-        return buildGame(gameDto, gameBuilder);
-    }
-
-    private Game buildGame(GameDto gameDto, Game.GameBuilder builder){
+    private Game buildGame(long groupId, GameDto gameDto, Game game){
         log.info("Validating a gameDto");
+
+        Set<Group> groups = game.getGroups();
+        log.info("Checking if groupId available: {}", groupId);
+        Group group = validators.throwIfGroupNotAvailableMod(groupId);
+        groups.add(group);
+
         long scriptId = gameDto.script().id();
-        log.info("Looking for script: {}", scriptId);
-        Script script = throwIfNotFoundById(scriptId, scriptRepository);
+        log.info("Group available, looking for script: {}", scriptId);
+        Script script = validators.throwIfNotFoundByIdAndGroupId(scriptId, groupId, scriptRepository);
 
         long storytellerId = gameDto.storyteller().id();
         log.info("Script found, looking for storyteller: {}", storytellerId);
-        Player storyTeller = throwIfNotFoundById(storytellerId, playerRepository);
+        Player storyTeller = validators.throwIfNotFoundByIdAndGroupId(storytellerId, groupId, playerRepository);
 
-        CharacterDto fabledDto = gameDto.fabled();
-        Character fabled = null;
-        log.info("Storyteller found, checking if fabled selected.");
-        if(fabledDto == null){
-            log.info("Game without fabled, skipping.");
+        log.info("Storyteller found, checking if fables selected.");
+        List<CharacterDto> fableDtos = gameDto.fables();
+        List<Character> fables = new ArrayList<>();
+        if(fableDtos == null || fableDtos.size() == 0){
+            log.info("Game without fables, skipping.");
         } else {
-            long id = fabledDto.id();
-            log.info("Game with fabled, looking for id: {}", id);
-            fabled = throwIfNotFoundById(id, characterRepository);
-            log.info("Fabled found.");
+            List<Long> ids = fableDtos.stream()
+                    .map(CharacterDto::id)
+                    .toList();
+            fables = validators.throwIfEntitiesNotExistByGroupId(ids, groupId, characterRepository);
+            log.info("Fables found.");
         }
-        List<Assignment> assignments = buildAssignments(gameDto.assignments());
+
+        List<Assignment> assignments = buildAssignments(gameDto.assignments(), groupId);
+
         PlaceDto placeDto = gameDto.place();
         Place place = null;
         log.info("Characters found, checking if place selected.");
@@ -251,26 +315,28 @@ public class GameService {
         } else {
             long id = placeDto.id();
             log.info("Game with place, looking for id: {}", id);
-            place = throwIfNotFoundById(id, placeRepository);
+            place = validators.throwIfNotFoundByIdAndGroupId(id, groupId, placeRepository);
             log.info("Place found.");
         }
+
         log.info("Validation successful, building a game.");
 
-        return builder
+        return game.toBuilder()
+                .groups(groups)
                 .script(script)
                 .storyteller(storyTeller)
-                .fabled(fabled)
+                .fables(fables)
                 .assignments(assignments)
                 .goodWon(gameDto.goodWon())
                 .date(gameDto.date())
                 .notes(gameDto.notes())
                 .place(place)
                 .imageUploaded(gameDto.imageUploaded())
-                .balanceMarks(gameDto.balanceMarks())
+                .balanceMarks(game.getBalanceMarks())
                 .build();
     }
 
-    private List<Assignment> buildAssignments(List<AssignmentDto> assignmentDtos){
+    private List<Assignment> buildAssignments(List<AssignmentDto> assignmentDtos, long groupId){
         List<Long> playersIds = new ArrayList<>(assignmentDtos.size());
         List<Long> charactersIds = new ArrayList<>(assignmentDtos.size());
         assignmentDtos.forEach(a -> {
@@ -281,9 +347,9 @@ public class GameService {
                 .toList());
         });
         log.info("Looking for players: {}", playersIds);
-        List<Player> players = findEntitiesById(playersIds, playerRepository);
+        List<Player> players = validators.throwIfEntitiesNotExistByGroupId(playersIds, groupId, playerRepository);
         log.info("Players found, looking for characters: {}", charactersIds);
-        List<Character> characters = findEntitiesById(charactersIds, characterRepository);
+        List<Character> characters = validators.throwIfEntitiesNotExistByGroupId(charactersIds, groupId, characterRepository);
         return assignmentDtos.stream()
             .map(a -> {
                 long playerDtoId = a.player().id();

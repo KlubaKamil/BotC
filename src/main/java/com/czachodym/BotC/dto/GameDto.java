@@ -1,18 +1,22 @@
 package com.czachodym.BotC.dto;
 
 import com.czachodym.BotC.dto.util.AssignmentDto;
+import com.czachodym.BotC.dto.util.BalanceMarkDto;
+import com.czachodym.BotC.model.Group;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Builder
 public record GameDto (
-        Long id,
+        long id,
+        Set<Group> groups,
         ScriptDto script,
         PlayerDto storyteller,
-        CharacterDto fabled,
+        List<CharacterDto> fables,
         List<AssignmentDto> assignments,
         boolean goodWon,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
@@ -20,5 +24,5 @@ public record GameDto (
         String notes,
         PlaceDto place,
         boolean imageUploaded,
-        List<Integer> balanceMarks
+        Set<BalanceMarkDto> balanceMarks
 ){}

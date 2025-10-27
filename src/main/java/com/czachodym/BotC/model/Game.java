@@ -1,33 +1,36 @@
 package com.czachodym.BotC.model;
 
 import com.czachodym.BotC.model.util.Assignment;
+import com.czachodym.BotC.model.util.BalanceMark;
+import com.czachodym.BotC.model.util.BotCEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.ManyToAny;
 
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
-@Builder(toBuilder = true)
+@EqualsAndHashCode(callSuper = true)
+@SuperBuilder(toBuilder = true)
 @ToString(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Game implements Serializable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+public class Game extends BotCEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "script_id")
     private Script script;
     @ManyToOne
     @JoinColumn(name = "storyteller_id")
     private Player storyteller;
-    @ManyToOne
+    @ManyToAny
     @JoinColumn(name = "fabled_id")
-    private Character fabled;
+    private List<Character> fables;
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "game_id")
     private List<Assignment> assignments;
@@ -43,8 +46,6 @@ public class Game implements Serializable {
     private Place place;
     @Column
     private boolean imageUploaded;
-    @ElementCollection
-    @CollectionTable(name = "balance_marks", joinColumns = @JoinColumn(name = "id"))
-    @Column(name = "number")
-    private List<Integer> balanceMarks;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<BalanceMark> balanceMarks;
 }
