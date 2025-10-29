@@ -85,7 +85,7 @@ public class DtoMapper {
                 .id(game.getId())
                 .groups(game.getGroups())
                 .script(mapScript(game.getScript()))
-                .storyteller(mapPlayer(game.getStoryteller()))
+                .storytellers(this.mapPlayerList(game.getStorytellers()))
                 .fables(mapCharacterList(game.getFables()))
                 .assignments(mapAssignmentList(game.getAssignments()))
                 .goodWon(game.isGoodWon())
@@ -144,6 +144,7 @@ public class DtoMapper {
         return TransformationDto.builder()
                 .character(mapCharacter(transformation.getCharacter()))
                 .good(transformation.isGood())
+                .type(transformation.getType())
                 .build();
     }
 

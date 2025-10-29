@@ -15,7 +15,7 @@ public record GameDto (
         long id,
         Set<Group> groups,
         ScriptDto script,
-        PlayerDto storyteller,
+        List<PlayerDto> storytellers,
         List<CharacterDto> fables,
         List<AssignmentDto> assignments,
         boolean goodWon,

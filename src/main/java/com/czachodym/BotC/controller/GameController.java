@@ -4,8 +4,6 @@ import com.czachodym.BotC.dto.GameDto;
 import com.czachodym.BotC.dto.headers.GameHeader;
 import com.czachodym.BotC.dto.util.BalanceMarkDto;
 import com.czachodym.BotC.service.GameService;
-import jakarta.servlet.ServletInputStream;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -15,8 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -77,34 +73,55 @@ public class GameController {
         log.info("Finished deleting a game");
     }
 
-    @GetMapping("/{id}/image")
-    public ResponseEntity<Resource> getImage(@PathVariable long id, @PathVariable long groupId) {
+    @GetMapping("/{id}/images")
+    public ResponseEntity<List<String>> getImageNames(@PathVariable long id, @PathVariable long groupId) {
         log.info("Getting an image for game, id: {}, groupId: {}", id, groupId);
-        Resource resource = gameService.getImage(id, groupId);
+        List<String> names = this.gameService.getImageNames(id, groupId);
+        log.info("Finished getting an image.");
+        return ResponseEntity.ok(names);
+    }
+
+    @GetMapping({"/{id}/image/{filename}"})
+    public ResponseEntity<Resource> getImage(@PathVariable long id, @PathVariable long groupId, @PathVariable String filename) {
+        log.info("Getting an image for game, id: {}, groupId: {}", id, groupId);
+        Resource resource = this.gameService.getImage(id, groupId, filename);
         log.info("Finished getting an image.");
         return resource == null ?
                 ResponseEntity.notFound().build() :
                 ResponseEntity.ok()
-                        .contentType(MediaType.IMAGE_JPEG)
+                        .contentType(MediaType.IMAGE_PNG)
                         .body(resource);
     }
 
-    @PostMapping(path = "/{id}/image")
-    private ResponseEntity<Map<String, Long>> uploadImagePost(@PathVariable long id, @PathVariable long groupId, @RequestParam("image") MultipartFile image) {
-        return uploadImage(id, groupId, image, OK);
-    }
-
-    @PutMapping(path = "/{id}/image")
-    private ResponseEntity<Map<String, Long>> uploadImagePut(@PathVariable long id, @PathVariable long groupId, @RequestParam("image") MultipartFile image){
-        return uploadImage(id, groupId, image, CREATED);
-    }
-
-    private ResponseEntity<Map<String, Long>> uploadImage(long id, long groupId, MultipartFile image, HttpStatus returnStatus) {
-        log.info("Uploading an image for game, id: {}, groupId: {}", id, groupId);
-        boolean success = gameService.uploadImage(id, groupId, image);
-        log.info("Finished uploading an image.");
-        return success ? ResponseEntity.status(returnStatus).body(Map.of("id", id)) :
+    @PostMapping(
+            path = "/{id}/image",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<?> uploadImage(
+            @PathVariable long groupId,
+            @PathVariable long id,
+            @RequestPart(value = "imagesToUpload", required = false) List<MultipartFile> imagesToUpload,
+            @RequestPart(value = "imagesToDelete", required = false) List<MultipartFile> imagesToDelete) {
+        log.info("Uploading images for game, id: {}, groupId: {}", id, groupId);
+        boolean success = true;
+        if(imagesToDelete != null && !imagesToDelete.isEmpty()) {
+            List<String> names = imagesToDelete.stream().map(MultipartFile::getOriginalFilename).toList();
+            success = this.gameService.deleteImages(id, groupId, names);
+        }
+        if(imagesToUpload != null && !imagesToUpload.isEmpty()) {
+            success = success && this.gameService.uploadImage(id, groupId, imagesToUpload);
+        }
+        log.info("Finished uploading images.");
+        return success ? ResponseEntity.ok(Map.of("id", id)) :
                 ResponseEntity.internalServerError().build();
+    }
+
+    @DeleteMapping("/{id}/image")
+    public ResponseEntity<Map<String, Long>> deleteImages(@PathVariable long id, @PathVariable long groupId, @RequestBody List<String> names) {
+        log.info("Deleting images from game, id: {}, groupId: {}, names: {}", id, groupId, names);
+        this.gameService.deleteImages(id, groupId, names);
+        log.info("Images deleted.");
+        return ResponseEntity.ok(Map.of("id", id));
     }
 
     @PutMapping("/{gameId}/balance")
@@ -126,7 +143,7 @@ public class GameController {
 
     @DeleteMapping("/{gameId}/balance/{username}")
     @ResponseStatus(NO_CONTENT)
-    public void deleteBalnceMark(@PathVariable long groupId, @PathVariable long gameId, @PathVariable String username){
+    public void deleteBalanceMark(@PathVariable long groupId, @PathVariable long gameId, @PathVariable String username){
         log.info("Deleting a balance mark, groupId: {}, gameId: {}, username: {}", groupId, gameId, username);
         gameService.deleteBalanceMark(groupId, gameId, username);
         log.info("Finished deleting a balance mark.");

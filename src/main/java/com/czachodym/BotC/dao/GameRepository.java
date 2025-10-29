@@ -15,15 +15,16 @@ public interface GameRepository extends BotCJpaRepository<Game, Long> {
             SELECT new com.czachodym.BotC.dto.headers.GameHeader(
                 g.id,
                 s.name,
-                p.name,
+                function('group_concat', p.name),
                 SIZE(g.assignments),
                 g.goodWon,
                 g.date)
             FROM Game g
             LEFT JOIN g.script s
-            LEFT JOIN g.storyteller p
+            LEFT JOIN g.storytellers p
             JOIN g.groups gr
             WHERE gr.id = :groupId
+            GROUP BY g.id, s.name, SIZE(g.assignments), g.goodWon, g.date
         """)
     List<GameHeader> findAllGameHeaders(long groupId);
 }

@@ -29,7 +29,9 @@ public class KafkaResponseListener {
         return future.get(5, TimeUnit.SECONDS);
     }
 
-    @KafkaListener(topics = "${kafka.topics.channels-response}", groupId = "${spring.kafka.consumer.group-id}",
+    @KafkaListener(
+            topics = "${kafka.topics.channels-response}",
+            groupId = "${spring.kafka.consumer.group-id}",
             autoStartup = "${listen.auto.start:false}")
     public void listenForDiscordChannelsMessage(String message) {
         JSONObject json = new JSONObject(message);

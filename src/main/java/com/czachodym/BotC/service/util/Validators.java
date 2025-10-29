@@ -108,14 +108,14 @@ public class Validators {
     }
 
     public String getIfNotNull(String value, String otherwise){
-        if(value == null || value.isBlank() || value.isEmpty()){
+        if(value == null || value.isBlank()){
             return otherwise;
         }
         return value;
     }
 
     public String getIfBotCEntityNotNull(BotCNameEntity value, String otherwise){
-        if(value == null || value.getName() == null || value.getName().isBlank() || value.getName().isEmpty()){
+        if(value == null || value.getName() == null || value.getName().isBlank()){
             return otherwise;
         }
         return value.getName();

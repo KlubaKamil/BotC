@@ -25,9 +25,9 @@ public class Game extends BotCEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "script_id")
     private Script script;
-    @ManyToOne
+    @ManyToAny
     @JoinColumn(name = "storyteller_id")
-    private Player storyteller;
+    private List<Player> storytellers;
     @ManyToAny
     @JoinColumn(name = "fabled_id")
     private List<Character> fables;

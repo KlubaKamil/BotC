@@ -1,11 +1,11 @@
 spring:
   datasource:
     driverClassName: org.h2.Driver
-    url: jdbc:h2:mem:testdb
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DATABASE_TO_LOWER=TRUE;IGNORECASE=TRUE
     username: sa
     password:
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
     defer-datasource-initialization: true
@@ -15,7 +15,6 @@ spring:
       path: /guest/h2-console
   sql:
     init:
-#      data-locations: classpath:data-local.sql
       data-locations: classpath:data2-local.sql
   kafka:
     bootstrap-servers: localhost:9092
@@ -29,12 +28,12 @@ jwt:
   secret: secrettttttttttttttttttttttttttttttttttttttttt
   token:
     validity:
-      time: 3000
+      time: 7200
 
 discord:
   clientId: 1369101839831797811
   secret: 1Cwhsc-i3oHJmu-h7cYO_ys1-ronC9WS
   token-url: https://discord.com/api/oauth2/token
   user-url: https://discord.com/api/users/@me
-  redirect-uri: http://localhost:4200/welcome
+  redirect-uri: http://192.168.1.30:4200/welcome
 #  redirect-uri: http://83.10.241.97:44444/welcome

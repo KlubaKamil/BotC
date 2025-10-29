@@ -21,4 +21,7 @@ public class Transformation {
     private Character character;
     @Column
     private boolean good;
+    @Column
+    @Enumerated(EnumType.STRING)
+    private TransformationType type;
 }
