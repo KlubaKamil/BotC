@@ -38,6 +38,7 @@ public interface PlayerRepository extends BotCNameJpaRepository<Player, Long> {
                             JOIN a.transformations at
                             WHERE t = at
                                 AND t.id = (SELECT MAX(t2.id) FROM Transformation t2 JOIN a.transformations at2 WHERE t2 = at2)
+                                AND t.type = 'BECOME'
                         ),
                         a.good
                     )

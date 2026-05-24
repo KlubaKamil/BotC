@@ -8,8 +8,8 @@ import java.io.*;
 @SpringBootApplication
 public class BotCApplication {
 	public static void main(String[] args) {
-		SpringApplication.run(BotCApplication.class, args);
-	}
+        SpringApplication.run(BotCApplication.class, args);
+    }
 //	public static void main(String[] args) {
 //		// Load file from resources
 //		InputStream inputStream = BotCApplication.class.getResourceAsStream("/tuples.csv");

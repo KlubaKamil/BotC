@@ -102,9 +102,9 @@ public class PlayerService {
         log.info("Checking if player exists: {}.", id);
         validators.throwIfNotFoundByIdAndGroupId(id, groupId, playerRepository);
         playerRepository.deleteById(id);
-        boolean deleted = playerRepository.existsById(id);
+        boolean exists = playerRepository.existsById(id);
 
-        log.info("Deleted: {}", deleted);
+        log.info("Deleted: {}", !exists);
     }
 
     public String getMessage(long id, NotificationMode notificationMode){

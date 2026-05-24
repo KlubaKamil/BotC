@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.czachodym</groupId>
-	<artifactId>BotC</artifactId>
+	<artifactId>botc</artifactId>
 	<version>1.6.0</version>
 	<name>BotC</name>
 	<description>Blood on the Clocktower archive app</description>
@@ -152,5 +152,22 @@
 			</plugin>
 		</plugins>
 	</build>
+
+    <distributionManagement>
+        <repository>
+            <id>nexus</id>
+            <url>http://192.168.1.19:30801/repository/botc-releases/</url>
+        </repository>
+    </distributionManagement>
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
+            <id>nexus</id>
+            <url>http://192.168.1.19:30801/repository/botc-releases/</url>
+        </repository>
+    </repositories>
 
 </project>

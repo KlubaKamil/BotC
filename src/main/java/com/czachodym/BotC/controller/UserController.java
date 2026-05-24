@@ -23,50 +23,50 @@ public class UserController {
         return null;
     }
 
-    @PostMapping("/member/{groupId}/{username}")
-    public ResponseEntity<Map<String, Long>> memberUser(@PathVariable long groupId, @PathVariable String username){
-        log.info("Trying to member user: {}, groupId: {}", username, groupId);
-        long id = userService.memberUser(groupId, username);
+    @PostMapping("/member/{groupId}/{userId}")
+    public ResponseEntity<Map<String, Long>> memberUser(@PathVariable long groupId, @PathVariable long userId){
+        log.info("Trying to member user: {}, groupId: {}", userId, groupId);
+        long id = userService.memberUser(groupId, userId);
         log.info("User set as member successfully.");
         return ResponseEntity.ok(Map.of("id", id));
     }
 
-    @PostMapping("/unmember/{groupId}/{username}")
-    public ResponseEntity<Map<String, Long>> unmemberUser(@PathVariable long groupId, @PathVariable String username){
-        log.info("Trying to unmember user: {}, groupId: {}", username, groupId);
-        long id = userService.unmemberUser(groupId, username);
+    @PostMapping("/unmember/{groupId}/{userId}")
+    public ResponseEntity<Map<String, Long>> unmemberUser(@PathVariable long groupId, @PathVariable long userId){
+        log.info("Trying to unmember user: {}, groupId: {}", userId, groupId);
+        long id = userService.unmemberUser(groupId, userId);
         log.info("User deleted from being a member successfully.");
         return ResponseEntity.ok(Map.of("id", id));
     }
 
-    @PostMapping("/mod/{groupId}/{username}")
-    public ResponseEntity<Map<String, Long>> modUser(@PathVariable long groupId, @PathVariable String username){
-        log.info("Trying to mod user: {}, groupId: {}", username, groupId);
-        long id = userService.modUser(groupId, username);
+    @PostMapping("/mod/{groupId}/{userId}")
+    public ResponseEntity<Map<String, Long>> modUser(@PathVariable long groupId, @PathVariable long userId){
+        log.info("Trying to mod user: {}, groupId: {}", userId, groupId);
+        long id = userService.modUser(groupId, userId);
         log.info("User set as moderator successfully.");
         return ResponseEntity.ok(Map.of("id", id));
     }
 
-    @PostMapping("/unmod/{groupId}/{username}")
-    public ResponseEntity<Map<String, Long>> unmodUser(@PathVariable long groupId, @PathVariable String username){
-        log.info("Trying to unmod user: {}, groupId: {}", username, groupId);
-        long id = userService.unmodUser(groupId, username);
+    @PostMapping("/unmod/{groupId}/{userId}")
+    public ResponseEntity<Map<String, Long>> unmodUser(@PathVariable long groupId, @PathVariable long userId){
+        log.info("Trying to unmod user: {}, groupId: {}", userId, groupId);
+        long id = userService.unmodUser(groupId, userId);
         log.info("User deleted from being a moderator successfully.");
         return ResponseEntity.ok(Map.of("id", id));
     }
 
-    @PostMapping("/admin/{groupId}/{username}")
-    public ResponseEntity<Map<String, Long>> adminUser(@PathVariable long groupId, @PathVariable String username){
-        log.info("Trying to admin user: {}, groupId: {}", username, groupId);
-        long id = userService.adminUser(groupId, username);
+    @PostMapping("/admin/{groupId}/{userId}")
+    public ResponseEntity<Map<String, Long>> adminUser(@PathVariable long groupId, @PathVariable long userId){
+        log.info("Trying to admin user: {}, groupId: {}", userId, groupId);
+        long id = userService.adminUser(groupId, userId);
         log.info("User set as administrator successfully.");
         return ResponseEntity.ok(Map.of("id", id));
     }
 
-    @PostMapping("/unadmin/{groupId}/{username}")
-    public ResponseEntity<Map<String, Long>> unadminUser(@PathVariable long groupId, @PathVariable String username){
-        log.info("Trying to unmod user: {}, groupId: {}", username, groupId);
-        long id = userService.unadminUser(groupId, username);
+    @PostMapping("/unadmin/{groupId}/{userId}")
+    public ResponseEntity<Map<String, Long>> unadminUser(@PathVariable long groupId, @PathVariable long userId){
+        log.info("Trying to unmod user: {}, groupId: {}", userId, groupId);
+        long id = userService.unadminUser(groupId, userId);
         log.info("User deleted from being an administrator successfully.");
         return ResponseEntity.ok(Map.of("id", id));
     }

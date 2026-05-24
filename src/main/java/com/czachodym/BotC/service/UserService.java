@@ -9,6 +9,7 @@ import com.czachodym.BotC.model.User;
 import com.czachodym.BotC.model.util.Role;
 import com.czachodym.BotC.service.util.DtoMapper;
 import com.czachodym.BotC.service.util.Validators;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,6 +41,10 @@ public class UserService implements UserDetailsService {
 
     public Optional<User> getUser(String username){
         return userRepository.findByUsername(username);
+    }
+    
+    public User getUserById(long userId){
+        return userRepository.findById(userId).orElseThrow(EntityNotFoundException::new);
     }
 
     public List<UserDto> getGroupUsersByRole(long groupId, Role role){
@@ -86,13 +91,14 @@ public class UserService implements UserDetailsService {
         return user;
     }
 
-    public long memberUser(long groupId, String username){
-        log.info("Checking if user exists: {}", username);
-        User user = (User) loadUserByUsername(username);
+    public long memberUser(long groupId, long userId){
+        log.info("Checking if user exists: {}", userId);
+        User user = getUserById(userId);
+        
         log.info("User exists, checking if group is available: {}", groupId);
         Group group = validators.throwIfGroupNotAvailableMod(groupId);
         Set<GroupRole> groupRoles = user.getGroupRoles();
-        validateUserGroupRole(username, Role.MEMBER, groupRoles, group);
+        validateUserGroupRole(user.getUsername(), Role.MEMBER, groupRoles, group);
         log.info("Validation successful, setting user to mod.");
         groupRoles.removeIf(g -> g.getGroup() != null && g.getGroup().equals(group));
         groupRoles.add(GroupRole.builder()
@@ -105,9 +111,9 @@ public class UserService implements UserDetailsService {
         return user.getId();
     }
 
-    public long unmemberUser(long groupId, String username) {
-        log.info("Checking if user exists: {}", username);
-        User user = (User) loadUserByUsername(username);
+    public long unmemberUser(long groupId, long userId) {
+        log.info("Checking if user exists: {}", userId);
+        User user = getUserById(userId);
 
         log.info("User exists, checking if group is available: {}", groupId);
         Group group = validators.throwIfGroupNotAvailableMod(groupId);
@@ -128,13 +134,14 @@ public class UserService implements UserDetailsService {
         return user.getId();
     }
 
-    public long modUser(long groupId, String username) {
-        log.info("Checking if user exists: {}", username);
-        User user = (User) loadUserByUsername(username);
+    public long modUser(long groupId, long userId) {
+        log.info("Checking if user exists: {}", userId);
+        User user = getUserById(userId);
+
         log.info("User exists, checking if group is available: {}", groupId);
         Group group = validators.throwIfGroupNotAvailableAdmin(groupId);
         Set<GroupRole> groupRoles = user.getGroupRoles();
-        validateUserGroupRole(username, Role.MODERATOR, groupRoles, group);
+        validateUserGroupRole(user.getUsername(), Role.MODERATOR, groupRoles, group);
         log.info("Validation successful, setting user to mod.");
         groupRoles.removeIf(g -> g.getGroup() != null && g.getGroup().equals(group));
         groupRoles.add(GroupRole.builder()
@@ -147,9 +154,9 @@ public class UserService implements UserDetailsService {
         return user.getId();
     }
 
-    public long unmodUser(long groupId, String username) {
-        log.info("Checking if user exists: {}", username);
-        User user = (User) loadUserByUsername(username);
+    public long unmodUser(long groupId, long userId) {
+        log.info("Checking if user exists: {}", userId);
+        User user = getUserById(userId);
 
         log.info("User exists, checking if group is available: {}", groupId);
         Group group = validators.throwIfGroupNotAvailableAdmin(groupId);
@@ -174,13 +181,14 @@ public class UserService implements UserDetailsService {
         return user.getId();
     }
 
-    public long adminUser(long groupId, String username) {
-        log.info("Checking if user exists: {}", username);
-        User user = (User) loadUserByUsername(username);
+    public long adminUser(long groupId, long userId) {
+        log.info("Checking if user exists: {}", userId);
+        User user = getUserById(userId);
+
         log.info("User exists, checking if group is available: {}", groupId);
         Group group = validators.throwIfGroupNotAvailableGlobalAdmin(groupId);
         Set<GroupRole> groupRoles = user.getGroupRoles();
-        validateUserGroupRole(username, Role.GROUP_ADMIN, groupRoles, group);
+        validateUserGroupRole(user.getUsername(), Role.GROUP_ADMIN, groupRoles, group);
         log.info("Validation successful, setting user to mod.");
         groupRoles.removeIf(g -> g.getGroup() != null && g.getGroup().equals(group));
         groupRoles.add(GroupRole.builder()
@@ -193,9 +201,9 @@ public class UserService implements UserDetailsService {
         return user.getId();
     }
 
-    public long unadminUser(long groupId, String username) {
-        log.info("Checking if user exists: {}", username);
-        User user = (User) loadUserByUsername(username);
+    public long unadminUser(long groupId, long userId) {
+        log.info("Checking if user exists: {}", userId);
+        User user = getUserById(userId);
 
         log.info("User exists, checking if group is available: {}", groupId);
         Group group = validators.throwIfGroupNotAvailableAdmin(groupId);

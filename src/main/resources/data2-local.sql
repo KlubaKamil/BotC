@@ -256,7 +256,9 @@ INSERT INTO user_ (username, password) VALUES
 ('user_member_1', '$2a$10$eClQEO69cZfloNP4VoVGQOxR/WBxC2NIen0uS8BpJ2iB5Pm/v4AKa'),
 ('user_member_2', '$2a$10$eClQEO69cZfloNP4VoVGQOxR/WBxC2NIen0uS8BpJ2iB5Pm/v4AKa'),
 ('user_noone', '$2a$10$eClQEO69cZfloNP4VoVGQOxR/WBxC2NIen0uS8BpJ2iB5Pm/v4AKa'),
-('user_noone_two', '$2a$10$eClQEO69cZfloNP4VoVGQOxR/WBxC2NIen0uS8BpJ2iB5Pm/v4AKa');
+('user_noone_two', '$2a$10$eClQEO69cZfloNP4VoVGQOxR/WBxC2NIen0uS8BpJ2iB5Pm/v4AKa'),
+('user ze spacjom', '$2a$10$eClQEO69cZfloNP4VoVGQOxR/WBxC2NIen0uS8BpJ2iB5Pm/v4AKa'),
+('user/znakspecjalny', '$2a$10$eClQEO69cZfloNP4VoVGQOxR/WBxC2NIen0uS8BpJ2iB5Pm/v4AKa');
 INSERT INTO user_ (username, discord_id) VALUES
 ('Czachodym', 245005113620561940);
 INSERT INTO achievement (name, description) VALUES ('Wygraj', 'Wygraj gre'), ('ebe', 'ebe ebe'), ('Nie taki diabeł straszny', 'Wygraj grę jako Demon ze zdolnością zabijania, nie zabijając ani jednej osoby.');
@@ -292,6 +294,6 @@ INSERT INTO GROUP_ROLE (role_, user_id, group_id) VALUES
 ('MODERATOR', 5, 2),
 ('MEMBER', 6, 1),
 ('MEMBER', 7, 2),
-('GLOBAL_ADMIN', 10, null);
+('GLOBAL_ADMIN', 12, null);
 INSERT INTO BALANCE_MARK (mark, username) VALUES (5, 'user'), (6, 'Mujstartygetrunkt1'), (8, 'Mujstartygetrunkt2');
 INSERT INTO GAME_BALANCE_MARKS(game_id, balance_marks_id) VALUES (1, 1), (1, 2), (1, 3);
