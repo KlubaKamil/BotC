@@ -9,8 +9,8 @@ import com.czachodym.BotC.dto.headers.GameHeader;
 import com.czachodym.BotC.dto.util.AssignmentDto;
 import com.czachodym.BotC.dto.util.BalanceMarkDto;
 import com.czachodym.BotC.dto.util.TransformationDto;
-import com.czachodym.BotC.model.Character;
 import com.czachodym.BotC.model.*;
+import com.czachodym.BotC.model.Character;
 import com.czachodym.BotC.model.util.Assignment;
 import com.czachodym.BotC.model.util.BalanceMark;
 import com.czachodym.BotC.model.util.CurrentUser;
@@ -18,22 +18,27 @@ import com.czachodym.BotC.model.util.Transformation;
 import com.czachodym.BotC.service.util.DtoMapper;
 import com.czachodym.BotC.service.util.Validators;
 import com.czachodym.botcshared.dto.NotificationMode;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
+import com.mongodb.client.gridfs.model.GridFSFile;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.gridfs.GridFsOperations;
+import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +56,8 @@ public class GameService {
     private final Path root = Paths.get(IMAGES_DIR);
     private final Validators validators;
     private final CurrentUser currentUser;
+    private final GridFsTemplate gridFsTemplate;
+    private final GridFsOperations gridFsOperations;
 
     @PostConstruct
     public void init() throws IOException {
@@ -114,77 +121,86 @@ public class GameService {
         log.info("Deleted: {}", deleted);
     }
 
-    public boolean uploadImage(long id, long groupId, List<MultipartFile> images) {
-        try{
+    public boolean uploadImages(long gameId, long groupId, List<MultipartFile> images) {
+        try {
             log.info("Checking if game exists.");
-            Game game = validators.throwIfNotFoundByIdAndGroupId(id, groupId, gameRepository);
-            Path gameDir = root.resolve("game_" + id);
-            Files.createDirectories(gameDir);
+            Game game = validators.throwIfNotFoundByIdAndGroupId(gameId, groupId, gameRepository);
 
-            for(MultipartFile image : images) {
-                String filename = UUID.randomUUID().toString();
-                Path filePath = gameDir.resolve(filename);
-                Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            for (MultipartFile image : images) {
+                DBObject metadata = new BasicDBObject();
+                metadata.put("gameId", gameId);
+                metadata.put("groupId", groupId);
+                metadata.put("contentType", image.getContentType());
+
+                gridFsTemplate.store(
+                        image.getInputStream(),
+                        UUID.randomUUID().toString(),
+                        image.getContentType(),
+                        metadata
+                );
             }
-
             game.setImageUploaded(true);
             gameRepository.save(game);
             log.info("Images saved.");
             return true;
         } catch (IOException e) {
-            log.error("Failed to upload image", e);
+            log.error("Failed to upload images", e);
             return false;
         }
     }
 
-    public List<String> getImageNames(long id, long groupId) {
-        Path gameDir = root.resolve("game_" + id);
-        List<String> resources = new ArrayList();
-        if (!Files.exists(gameDir)) {
-            return resources;
-        } else {
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(gameDir)) {
-                for(Path path : stream) {
-                    resources.add((new UrlResource(path.toUri())).getFilename());
-                }
-            } catch (IOException e) {
-                log.error("Failed to load images", e);
-            }
-
-            return resources;
-        }
+    public List<String> getImageNames(long gameId) {
+        Query query = new Query(Criteria.where("metadata.gameId").is(gameId));
+        return gridFsTemplate.find(query)
+                .map(GridFSFile::getFilename)
+                .into(new ArrayList<>());
     }
 
-    public Resource getImage(long id, long groupId, String filename) {
-        Path filePath = root.resolve("game_" + id).resolve(filename);
+    public Resource getImage(long gameId, String filename) {
+        Query query = new Query(
+                Criteria.where("metadata.gameId").is(gameId)
+                        .and("filename").is(filename)
+        );
+        GridFSFile file = gridFsTemplate.findOne(query);
 
         try {
-            return new UrlResource(filePath.toUri());
-        } catch (MalformedURLException e) {
+            return gridFsOperations.getResource(file);
+        } catch (Exception e) {
+            log.error("Failed to get image", e);
             return null;
         }
     }
 
-    public boolean deleteImages(long id, long groupId, List<String> names) {
-        Game game = validators.throwIfNotFoundByIdAndGroupId(id, groupId, gameRepository);
-        Path gameDir = root.resolve("game_" + id);
+    public List<byte[]> getImages(long gameId) {
+        Query query = new Query(Criteria.where("metadata.gameId").is(gameId));
+        return gridFsTemplate.find(query)
+                .map(file -> {
+                    try {
+                        return gridFsOperations.getResource(file).getInputStream().readAllBytes();
+                    } catch (IOException e) {
+                        log.error("Failed to load image {}", file.getFilename(), e);
+                        return null;
+                    }
+                })
+                .into(new ArrayList<>());
+    }
 
+    public boolean deleteImages(long gameId, long groupId, List<String> filenames) {
+        Game game = validators.throwIfNotFoundByIdAndGroupId(gameId, groupId, gameRepository);
         try {
-            if (Files.exists(gameDir)) {
-                Files.walk(gameDir).sorted(Comparator.reverseOrder()).map(Path::toFile).filter(f -> names.contains(f.getName())).forEach(File::delete);
-                log.info("Images deleted for game " + id);
-                Stream<Path> stream = Files.list(gameDir);
-                boolean hasFiles = stream.findAny().isPresent();
-                if (!hasFiles) {
-                    game.setImageUploaded(false);
-                    gameRepository.save(game);
-                }
-            }
-        } catch (IOException e) {
+            Query query = new Query(
+                    Criteria.where("metadata.gameId").is(gameId)
+                            .and("filename").in(filenames)
+            );
+            gridFsTemplate.delete(query);
+            log.info("Images deleted for game " + gameId);
+            game.setImageUploaded(false);
+            gameRepository.save(game);
+            return true;
+        } catch (Exception e) {
             log.error("Failed to delete images", e);
             return false;
         }
-        return true;
     }
 
     public String addBalanceMark(long groupId, long gameId, BalanceMarkDto balanceMarkDto) {
@@ -218,9 +234,9 @@ public class GameService {
         log.info("Balance mark deleted successfully.");
     }
 
-    public String getMessage(long id, NotificationMode notificationMode){
+    public String getMessage(long id, NotificationMode notificationMode, long groupId){
         String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nową grę!" : "Edytowano grę!";
-        Game game = validators.throwIfNotFoundByIdAndGroupId(id, 0, gameRepository);
+        Game game = validators.throwIfNotFoundByIdAndGroupId(id, groupId, gameRepository);
         String script = game.getScript().getName();
         String storyteller = getStorytellers(game.getStorytellers());
         String fabled = getFables(game.getFables());
@@ -248,6 +264,26 @@ public class GameService {
                 """.formatted(modeMessage, id, script, storyteller, fabled, goodWon, date, place, balance, assignments,
                     notes, FRONTEND_URL, id);
     }
+
+//    public MessageEmbed getEmbed(long id, NotificationMode notificationMode, long groupId) {
+//        Game game = validators.throwIfNotFoundByIdAndGroupId(id, groupId, gameRepository);
+//        String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nową grę!" : "Edytowano grę!";
+//        int color = game.isGoodWon() ? 0x3498db : 0xe74c3c; // niebieski = Dobro, czerwony = Zło
+//
+//        return new EmbedBuilder()
+//                .setTitle(modeMessage, FRONTEND_URL + "/games/" + id)
+//                .setColor(color)
+//                .addField("Skrypt", game.getScript().getName(), true)
+//                .addField("Narrator", getStorytellers(game.getStorytellers()), true)
+//                .addField("Zwycięzcy", game.isGoodWon() ? "Dobro" : "Zło", true)
+//                .addField("Data", game.getDate() == null ? "-" : game.getDate().toString(), true)
+//                .addField("Lokalizacja", validators.getIfBotCEntityNotNull(game.getPlace(), "-"), true)
+//                .addField("Balans", getBalance(game.getBalanceMarks()), true)
+//                .addField("Legenda", getFables(game.getFables()), false)
+//                .addField("Lista graczy", getAssignments(game.getAssignments()), false)
+//                .addField("Notatki", validators.getIfNotNull(game.getNotes(), "-"), false)
+//                .build();
+//    }
 
     private String getBalance(Set<BalanceMark> balanceMarks){
         if(balanceMarks == null || balanceMarks.size() == 0) return "-";
@@ -297,7 +333,7 @@ public class GameService {
             message += "            " + a.getPlayer().getName() + ": " + a.getCharacter().getName() + " - " +
                     getGood(a.isGood()) + "\n";
             for(Transformation t: a.getTransformations()){
-                message += "                        Zmiana w: " + t.getCharacter().getName() + " - " +
+                message += "                        " + t.getType().getLabel() +": " + t.getCharacter().getName() + " - " +
                         getGood(t.isGood()) + "\n";
             }
         }

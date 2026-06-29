@@ -8,6 +8,7 @@ import com.czachodym.BotC.dto.details.player.PlayerDetails;
 import com.czachodym.BotC.dto.details.player.PlayerScriptDetails;
 import com.czachodym.BotC.dto.headers.PlayerHeader;
 import com.czachodym.BotC.dto.util.PlayerAchievementDto;
+import com.czachodym.BotC.exception.EntityAlreadyExistsException;
 import com.czachodym.BotC.model.Achievement;
 import com.czachodym.BotC.model.Group;
 import com.czachodym.BotC.model.Player;
@@ -66,8 +67,9 @@ public class PlayerService {
 
     public long createPlayer(long groupId, PlayerDto playerDto){
         String name = playerDto.name();
+        String discordName = playerDto.discordName();
         log.info("Checking if player exists.");
-        validators.throwIfExistsByNameAndGroupId(groupId, name, playerRepository);
+        throwIfExistsByNameAndDiscordNameAndGroupId(groupId, name, discordName);
         Player player = buildPlayer(groupId, playerDto);
         log.info("Saving new player.");
         Player savedPlayer = playerRepository.save(player);
@@ -80,10 +82,11 @@ public class PlayerService {
     public long editPlayer(long groupId, PlayerDto playerDto){
         long id = playerDto.id();
         String name = playerDto.name();
+        String discordName = playerDto.discordName();
         log.info("Checking if player exists.");
         Player player = validators.throwIfNotFoundByIdAndGroupId(id, groupId, playerRepository);
-        if(!player.getName().equals(playerDto.name())) {
-            validators.throwIfExistsByNameAndGroupId(groupId, name, playerRepository);
+        if(player.getId() != playerDto.id()) {
+            throwIfExistsByNameAndDiscordNameAndGroupId(groupId, name, discordName);
         }
         log.info("Player found, updating.");
         Player savedPlayer = buildPlayer(groupId, playerDto, player);
@@ -107,8 +110,8 @@ public class PlayerService {
         log.info("Deleted: {}", !exists);
     }
 
-    public String getMessage(long id, NotificationMode notificationMode){
-        Player player = validators.throwIfNotFoundByIdAndGroupId(id, 0, playerRepository);
+    public String getMessage(long id, NotificationMode notificationMode, long groupId){
+        Player player = validators.throwIfNotFoundByIdAndGroupId(id, groupId, playerRepository);
         String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nowego gracza!" : "Edytowano gracza!";
         String name = player.getName();
         String discordName = player.getDiscordName() == null ? "-" : player.getDiscordName();
@@ -160,5 +163,12 @@ public class PlayerService {
                 .discordName(playerDto.discordName())
                 .playerAchievements(playerAchievements)
                 .build();
+    }
+
+    private void throwIfExistsByNameAndDiscordNameAndGroupId(long groupId, String name, String discordName){
+        boolean found = playerRepository.existsByNameAndDiscordNameAndGroups_Id(name, discordName, groupId);
+        if(found) {
+            throw new EntityAlreadyExistsException(name + " (" + discordName + ")");
+        }
     }
 }

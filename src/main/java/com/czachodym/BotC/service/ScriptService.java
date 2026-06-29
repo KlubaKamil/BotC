@@ -106,8 +106,8 @@ public class ScriptService {
         log.info("Deleted: {}", deleted);
     }
 
-    public String getMessage(long id, NotificationMode notificationMode){
-        Script script = validators.throwIfNotFoundByIdAndGroupId(id, 0, scriptRepository);
+    public String getMessage(long id, NotificationMode notificationMode, long groupId){
+        Script script = validators.throwIfNotFoundByIdAndGroupId(id, groupId, scriptRepository);
         String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nowy skrypt!" : "Edytowano skrypt!";
         String name = script.getName();
         String author = validators.getIfNotNull(script.getAuthor(), "-");

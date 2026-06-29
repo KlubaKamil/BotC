@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.5</version>
+		<version>3.5.16</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.czachodym</groupId>
 	<artifactId>botc</artifactId>
-	<version>1.6.0</version>
+	<version>1.7.1</version>
 	<name>BotC</name>
 	<description>Blood on the Clocktower archive app</description>
 	<url/>
@@ -34,9 +34,10 @@
 		<jjwt.version>0.9.1</jjwt.version>
 		<jaxb-api.version>2.3.1</jaxb-api.version>
 		<json.version>20250107</json.version>
-		<botc-shared.version>1.1.0</botc-shared.version>
+		<botc-shared.version>1.2.0</botc-shared.version>
 		<lombok.version>1.18.38</lombok.version>
 		<thumbnailator.version>0.4.20</thumbnailator.version>
+        <de.flapdoodle.embed.mongo.spring3x.version>4.33.0</de.flapdoodle.embed.mongo.spring3x.version>
 	</properties>
 
 	<dependencies>
@@ -60,6 +61,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
@@ -77,11 +82,6 @@
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
 			<version>${json.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.mysql</groupId>
@@ -129,12 +129,32 @@
 			<version>${thumbnailator.version}</version>
 		</dependency>
 	</dependencies>
-
+    <profiles>
+        <profile>
+            <id>local</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>de.flapdoodle.embed</groupId>
+                    <artifactId>de.flapdoodle.embed.mongo.spring3x</artifactId>
+                    <version>${de.flapdoodle.embed.mongo.spring3x.version}</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.czachodym.BotC.BotCApplication</mainClass>
+                </configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -153,12 +173,6 @@
 		</plugins>
 	</build>
 
-    <distributionManagement>
-        <repository>
-            <id>nexus</id>
-            <url>http://192.168.1.19:30801/repository/botc-releases/</url>
-        </repository>
-    </distributionManagement>
     <repositories>
         <repository>
             <id>central</id>

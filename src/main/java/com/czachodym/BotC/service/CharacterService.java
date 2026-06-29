@@ -163,8 +163,8 @@ public class CharacterService {
         }
     }
 
-    public String getMessage(long id, NotificationMode notificationMode){
-        Character character = validators.throwIfNotFoundByIdAndGroupId(id, 0, characterRepository);
+    public String getMessage(long id, NotificationMode notificationMode, long groupId) {
+        Character character = validators.throwIfNotFoundByIdAndGroupId(id, groupId, characterRepository);
         String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nową postać!" : "Edytowano postać!";
         String name = character.getName();
         int maxStartNumber = character.getMaxStartNumber();

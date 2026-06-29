@@ -297,3 +297,14 @@ INSERT INTO GROUP_ROLE (role_, user_id, group_id) VALUES
 ('GLOBAL_ADMIN', 12, null);
 INSERT INTO BALANCE_MARK (mark, username) VALUES (5, 'user'), (6, 'Mujstartygetrunkt1'), (8, 'Mujstartygetrunkt2');
 INSERT INTO GAME_BALANCE_MARKS(game_id, balance_marks_id) VALUES (1, 1), (1, 2), (1, 3);
+
+INSERT INTO DISCORD_GUILD (id, discord_guild_id) VALUES
+(1, '1371639891628261396'),
+(2, '1130620031840039032');
+INSERT INTO DISCORD_GUILD_GROUPS (discord_guild_id, groups_id) VALUES
+(1, 1),
+(2, 1);
+INSERT INTO DISCORD_ENTITY (id, discord_entity_id, guild_id) VALUES
+(1, '1371639892282576918', '1371639891628261396');
+INSERT INTO DISCORD_ENTITY_GROUPS (discord_entity_id, groups_id) VALUES
+(1, 1);

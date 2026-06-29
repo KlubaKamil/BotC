@@ -41,3 +41,7 @@ discord:
   token-url:
   user-url:
   redirect-uri:
+
+listen:
+  auto:
+    start: true

@@ -18,11 +18,19 @@ spring:
       data-locations: classpath:data2-local.sql
   kafka:
     bootstrap-servers: localhost:9092
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: botc
+      username:
+      password:
+      authentication-database: admin
 
 frontend:
   cors:
     origin: "*"
-  url: http://localhost:4200
+  url: http://192.168.1.30:4200
 
 jwt:
   secret: secrettttttttttttttttttttttttttttttttttttttttt
@@ -32,8 +40,15 @@ jwt:
 
 discord:
   clientId: 1369101839831797811
-  secret: 1Cwhsc-i3oHJmu-h7cYO_ys1-ronC9WS
+  secret: V0vNV3dSpIGcZwsyFrzfD5Qwbp-Gazey
   token-url: https://discord.com/api/oauth2/token
   user-url: https://discord.com/api/users/@me
   redirect-uri: http://192.168.1.30:4200/welcome
 #  redirect-uri: http://83.10.241.97:44444/welcome
+
+de:
+  flapdoodle:
+    mongodb:
+      port: 27018
+      embedded:
+        version: 7.0.0

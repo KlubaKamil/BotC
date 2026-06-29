@@ -97,8 +97,8 @@ public class AchievementService {
         log.info("Deleted: {}", deleted);
     }
 
-    public String getMessage(long id, NotificationMode notificationMode){
-        Achievement achievement = validators.throwIfNotFoundByIdAndGroupId(id, 0, achievementRepository);
+    public String getMessage(long id, NotificationMode notificationMode, long groupId){
+        Achievement achievement = validators.throwIfNotFoundByIdAndGroupId(id, groupId, achievementRepository);
         String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nowe osiągnięcie!" : "Edytowano osiągnięcie!";
         String name = achievement.getName();
         String description = achievement.getDescription();

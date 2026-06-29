@@ -156,4 +156,6 @@ public interface PlayerRepository extends BotCNameJpaRepository<Player, Long> {
             GROUP BY s.id, s.name
         """)
     List<PlayerScriptDetails> findPlayerScriptDetailsById(long id);
+
+    boolean existsByNameAndDiscordNameAndGroups_Id(String name, String discordName, long groupId);
 }

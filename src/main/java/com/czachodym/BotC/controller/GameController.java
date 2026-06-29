@@ -76,7 +76,7 @@ public class GameController {
     @GetMapping("/{id}/images")
     public ResponseEntity<List<String>> getImageNames(@PathVariable long id, @PathVariable long groupId) {
         log.info("Getting an image for game, id: {}, groupId: {}", id, groupId);
-        List<String> names = this.gameService.getImageNames(id, groupId);
+        List<String> names = this.gameService.getImageNames(id);
         log.info("Finished getting an image.");
         return ResponseEntity.ok(names);
     }
@@ -84,7 +84,7 @@ public class GameController {
     @GetMapping({"/{id}/image/{filename}"})
     public ResponseEntity<Resource> getImage(@PathVariable long id, @PathVariable long groupId, @PathVariable String filename) {
         log.info("Getting an image for game, id: {}, groupId: {}", id, groupId);
-        Resource resource = this.gameService.getImage(id, groupId, filename);
+        Resource resource = this.gameService.getImage(id, filename);
         log.info("Finished getting an image.");
         return resource == null ?
                 ResponseEntity.notFound().build() :
@@ -109,7 +109,7 @@ public class GameController {
             success = this.gameService.deleteImages(id, groupId, names);
         }
         if(imagesToUpload != null && !imagesToUpload.isEmpty()) {
-            success = success && this.gameService.uploadImage(id, groupId, imagesToUpload);
+            success = success && this.gameService.uploadImages(id, groupId, imagesToUpload);
         }
         log.info("Finished uploading images.");
         return success ? ResponseEntity.ok(Map.of("id", id)) :

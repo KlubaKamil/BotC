@@ -23,7 +23,7 @@ public class Config {
 
     @Bean
     @RequestScope
-    public CurrentUser availableGroups() {
+    public CurrentUser currentUser() {
         User user = (User)SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
