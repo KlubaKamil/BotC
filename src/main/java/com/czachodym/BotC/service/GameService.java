@@ -188,13 +188,15 @@ public class GameService {
     public boolean deleteImages(long gameId, long groupId, List<String> filenames) {
         Game game = validators.throwIfNotFoundByIdAndGroupId(gameId, groupId, gameRepository);
         try {
-            Query query = new Query(
+            Query deletequery = new Query(
                     Criteria.where("metadata.gameId").is(gameId)
                             .and("filename").in(filenames)
             );
-            gridFsTemplate.delete(query);
-            log.info("Images deleted for game " + gameId);
-            game.setImageUploaded(false);
+            gridFsTemplate.delete(deletequery);
+            log.info("Images deleted for game {}", gameId);
+            Query hasImagesQuery = new Query(Criteria.where("metadata.gameId").is(gameId));
+            boolean hasImages = gridFsTemplate.find(hasImagesQuery).iterator().hasNext();
+            game.setImageUploaded(hasImages);
             gameRepository.save(game);
             return true;
         } catch (Exception e) {
@@ -234,8 +236,10 @@ public class GameService {
         log.info("Balance mark deleted successfully.");
     }
 
-    public String getMessage(long id, NotificationMode notificationMode, long groupId){
+    public String getMessage(long id, NotificationMode notificationMode, Group group){
         String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nową grę!" : "Edytowano grę!";
+        long groupId = group.getId();
+        String groupName = group.getName();
         Game game = validators.throwIfNotFoundByIdAndGroupId(id, groupId, gameRepository);
         String script = game.getScript().getName();
         String storyteller = getStorytellers(game.getStorytellers());
@@ -260,9 +264,9 @@ public class GameService {
                 %s
                 Notatki: 
                 %s
-                Kliknij i zobacz: %s/games/%d
+                Kliknij i zobacz: %s/games/%s/%d
                 """.formatted(modeMessage, id, script, storyteller, fabled, goodWon, date, place, balance, assignments,
-                    notes, FRONTEND_URL, id);
+                    notes, FRONTEND_URL, groupName, id);
     }
 
 //    public MessageEmbed getEmbed(long id, NotificationMode notificationMode, long groupId) {

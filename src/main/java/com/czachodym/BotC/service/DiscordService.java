@@ -187,14 +187,13 @@ public class DiscordService {
         long id = discordNotification.id();
         NotificationType type = discordNotification.notificationType();
         NotificationMode notificationMode = discordNotification.notificationMode();
-        long groupId = group.getId();
 
         return switch(type){
-            case GAME -> gameService.getMessage(id, notificationMode, groupId);
-            case SCRIPT -> scriptService.getMessage(id, notificationMode, groupId);
-            case CHARACTER -> characterService.getMessage(id, notificationMode, groupId);
-            case PLAYER -> playerService.getMessage(id, notificationMode, groupId);
-            case ACHIEVEMENT -> achievementService.getMessage(id, notificationMode, groupId);
+            case GAME -> gameService.getMessage(id, notificationMode, group);
+            case SCRIPT -> scriptService.getMessage(id, notificationMode, group);
+            case CHARACTER -> characterService.getMessage(id, notificationMode, group);
+            case PLAYER -> playerService.getMessage(id, notificationMode, group);
+            case ACHIEVEMENT -> achievementService.getMessage(id, notificationMode, group);
         };
     }
 

@@ -110,7 +110,9 @@ public class PlayerService {
         log.info("Deleted: {}", !exists);
     }
 
-    public String getMessage(long id, NotificationMode notificationMode, long groupId){
+    public String getMessage(long id, NotificationMode notificationMode, Group group){
+        long groupId = group.getId();
+        String groupName = group.getName();
         Player player = validators.throwIfNotFoundByIdAndGroupId(id, groupId, playerRepository);
         String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nowego gracza!" : "Edytowano gracza!";
         String name = player.getName();
@@ -120,8 +122,8 @@ public class PlayerService {
                 Id: %d
                 Imię: %s
                 Nick na Discordzie: %s
-                Kliknij i zobacz: %s/players/%d
-                """.formatted(modeMessage, id, name, discordName, FRONTEND_URL, id);
+                Kliknij i zobacz: %s/players/%s/%d
+                """.formatted(modeMessage, id, name, discordName, FRONTEND_URL, groupName, id);
     }
 
     private Player buildPlayer(long groupId, PlayerDto playerDto){

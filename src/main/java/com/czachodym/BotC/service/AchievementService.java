@@ -97,7 +97,9 @@ public class AchievementService {
         log.info("Deleted: {}", deleted);
     }
 
-    public String getMessage(long id, NotificationMode notificationMode, long groupId){
+    public String getMessage(long id, NotificationMode notificationMode, Group group){
+        long groupId = group.getId();
+        String groupName = group.getName();
         Achievement achievement = validators.throwIfNotFoundByIdAndGroupId(id, groupId, achievementRepository);
         String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nowe osiągnięcie!" : "Edytowano osiągnięcie!";
         String name = achievement.getName();
@@ -107,8 +109,8 @@ public class AchievementService {
                 Id: %d
                 Name: %s
                 Opis: %s
-                Kliknij i zobacz: %s/achievements/%d
-                """.formatted(modeMessage, id, name, description, FRONTEND_URL, id);
+                Kliknij i zobacz: %s/achievements/%s/%d
+                """.formatted(modeMessage, id, name, description, FRONTEND_URL, groupName, id);
     }
 
     private Achievement buildAchievement(long groupId, AchievementDto achievementDto){

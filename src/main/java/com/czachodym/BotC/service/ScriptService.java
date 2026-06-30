@@ -106,7 +106,9 @@ public class ScriptService {
         log.info("Deleted: {}", deleted);
     }
 
-    public String getMessage(long id, NotificationMode notificationMode, long groupId){
+    public String getMessage(long id, NotificationMode notificationMode, Group group){
+        long groupId = group.getId();
+        String groupName = group.getName();
         Script script = validators.throwIfNotFoundByIdAndGroupId(id, groupId, scriptRepository);
         String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nowy skrypt!" : "Edytowano skrypt!";
         String name = script.getName();
@@ -127,9 +129,9 @@ public class ScriptService {
                    Outsiderzy: %s
                    Miniony: %s
                    Demony: %s
-                Kliknij i zobacz: %s/scripts/%d
+                Kliknij i zobacz: %s/scripts/%s/%d
                 """.formatted(modeMessage, id, name, author, notes, townsfolks, outsiders, minions, demons,
-                    FRONTEND_URL, id);
+                    FRONTEND_URL, groupName, id);
     }
 
     private String getCharactersAsString(List<ScriptCharacter> scriptCharacters, Alignment alignment){

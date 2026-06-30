@@ -163,7 +163,9 @@ public class CharacterService {
         }
     }
 
-    public String getMessage(long id, NotificationMode notificationMode, long groupId) {
+    public String getMessage(long id, NotificationMode notificationMode, Group group) {
+        long groupId = group.getId();
+        String groupName = group.getName();
         Character character = validators.throwIfNotFoundByIdAndGroupId(id, groupId, characterRepository);
         String modeMessage = notificationMode == NotificationMode.NEW ? "Dodano nową postać!" : "Edytowano postać!";
         String name = character.getName();
@@ -181,9 +183,9 @@ public class CharacterService {
                 Opis: %s
                 Link do wiki: %s
                 Wskazówki: %s
-                Kliknij i zobacz: %s/characters/%d
+                Kliknij i zobacz: %s/characters/%s/%d
                 """.formatted(modeMessage, id, name, maxStartNumber, alignment, description, linkToWiki, tips,
-                    FRONTEND_URL, id);
+                    FRONTEND_URL, groupName, id);
     }
 
     private Character buildCharacter(long groupId, CharacterDto characterDto){
