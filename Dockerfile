@@ -3,7 +3,7 @@
 #COPY target/*.jar BotC.jar
 #CMD ["java", "-jar", "./BotC.jar"]
 
-#docker buildx build --platform linux/arm64 -t 192.168.1.19:30500/botc-backend:1.7.1 --push . --secret id=maven_settings,src=C:\Users\czach\.m2\settings.xml
+#docker buildx build --platform linux/arm64 -t 192.168.1.19:30500/botc-backend:1.7.2 --push . --secret id=maven_settings,src=C:\Users\czach\.m2\settings.xml
 
 # ---------- BUILD STAGE ----------
 FROM maven:4.0.0-rc-4-eclipse-temurin-25 AS build

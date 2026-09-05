@@ -85,7 +85,6 @@ public class DiscordService {
         discordNotification = discordNotification.toBuilder()
                         .channelsToNotify(requestDiscordEntitiesAsIdsList)
                         .message(getMessage(discordNotification, group))
-                        .resources(getResources(discordNotification))
                         .build();
         kafkaDiscordTemplate.send(notificationTopic, discordNotification);
     }
@@ -195,14 +194,5 @@ public class DiscordService {
             case PLAYER -> playerService.getMessage(id, notificationMode, group);
             case ACHIEVEMENT -> achievementService.getMessage(id, notificationMode, group);
         };
-    }
-
-    private List<byte[]> getResources(DiscordNotification discordNotification){
-        if(discordNotification.notificationType() != NotificationType.GAME){
-            return Collections.emptyList();
-        }
-        long id = discordNotification.id();
-
-        return gameService.getImages(id);
     }
 }
